@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --ink: #111111;
   --paper: #ffffff;
@@ -14,12 +16,12 @@ html {
 }
 
 body {
-  font-family: 'Jost', sans-serif;
+  font-family: var(--font-jost), sans-serif;
   color: var(--ink);
   letter-spacing: .01em;
   min-width: 320px;
   overflow-x: hidden;
-  /* Hide default cursor on desktop */
+  background-color: #ffffff;
 }
 
 @media (min-width: 768px) {
@@ -32,7 +34,7 @@ body {
 }
 
 .serif {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-cormorant), serif;
 }
 
 .tracked {
@@ -355,7 +357,8 @@ body {
 .group:hover {
   transform: translateY(-8px);
 }
-.group:hover .watch-svg {
+.group:hover .watch-svg,
+.text-center:hover .watch-svg {
   transform: scale(1.05) rotate(3deg);
 }
 .group:hover .price {
@@ -398,6 +401,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  line-height: 1;
+  padding-left: 1px;
   color: white;
   font-size: 10px;
   letter-spacing: 1px;
@@ -512,7 +518,7 @@ header.scrolled {
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
-header.scrolled .max-w-\\[1400px\\] {
+header.scrolled > div {
     padding-top: 0.75rem !important;
     padding-bottom: 0.75rem !important;
     transition: padding 0.4s;
