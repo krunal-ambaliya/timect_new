@@ -18,7 +18,7 @@ html {
 body {
   font-family: var(--font-jost), sans-serif;
   color: var(--ink);
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
   min-width: 320px;
   overflow-x: hidden;
   background-color: #ffffff;
@@ -28,7 +28,9 @@ body {
   body {
     cursor: none;
   }
-  a, button, .cursor-pointer {
+  a,
+  button,
+  .cursor-pointer {
     cursor: none;
   }
 }
@@ -38,11 +40,11 @@ body {
 }
 
 .tracked {
-  letter-spacing: .18em;
+  letter-spacing: 0.18em;
 }
 
 .tracked-sm {
-  letter-spacing: .1em;
+  letter-spacing: 0.1em;
 }
 
 /* ---------- top strip ---------- */
@@ -50,7 +52,7 @@ body {
   background: #000;
   color: #fff;
   font-size: 11px;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 /* ---------- watch placeholder art ---------- */
@@ -74,7 +76,13 @@ body {
 .hero {
   position: relative;
   height: 560px;
-  background: linear-gradient(120deg, #0a1622, #13324a 45%, #1c4a68 70%, #dfe9ee 100%);
+  background: linear-gradient(
+    120deg,
+    #0a1622,
+    #13324a 45%,
+    #1c4a68 70%,
+    #dfe9ee 100%
+  );
   overflow: hidden;
 }
 
@@ -83,8 +91,16 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 900px 500px at 75% 45%, rgba(255, 255, 255, .18), transparent 60%),
-    repeating-radial-gradient(circle at 78% 45%, rgba(255, 255, 255, .05) 0 2px, transparent 3px 34px);
+    radial-gradient(
+      ellipse 900px 500px at 75% 45%,
+      rgba(255, 255, 255, 0.18),
+      transparent 60%
+    ),
+    repeating-radial-gradient(
+      circle at 78% 45%,
+      rgba(255, 255, 255, 0.05) 0 2px,
+      transparent 3px 34px
+    );
   mix-blend-mode: screen;
 }
 
@@ -94,7 +110,7 @@ body {
   top: 130px;
   width: 230px;
   height: 230px;
-  border: 2px solid rgba(255, 255, 255, .75);
+  border: 2px solid rgba(255, 255, 255, 0.75);
   border-radius: 50%;
   border-right-color: transparent;
   border-bottom-color: transparent;
@@ -105,7 +121,7 @@ body {
   content: "";
   position: absolute;
   inset: 26px;
-  border: 1px solid rgba(255, 255, 255, .55);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 50%;
   border-left-color: transparent;
   border-top-color: transparent;
@@ -116,9 +132,9 @@ body {
   right: 14px;
   top: 210px;
   writing-mode: vertical-rl;
-  color: rgba(255, 255, 255, .8);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 10px;
-  letter-spacing: .15em;
+  letter-spacing: 0.15em;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -154,8 +170,10 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: .55;
-  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s;
+  opacity: 0.55;
+  transition:
+    transform 0.8s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.8s;
 }
 
 .cat-tile:hover img {
@@ -183,7 +201,7 @@ body {
 .cat-tile .label {
   color: #fff;
   font-size: 13px;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   padding-bottom: 14px;
   z-index: 2;
   transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -205,7 +223,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: .6;
+  opacity: 0.6;
   transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -216,7 +234,11 @@ body {
 .collection-tile .grad {
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(0, 0, 0, .35), rgba(0, 0, 0, .05) 55%);
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.35),
+    rgba(0, 0, 0, 0.05) 55%
+  );
   z-index: 1;
 }
 
@@ -226,7 +248,7 @@ body {
   top: 16px;
   color: #fff;
   font-size: 13px;
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
   z-index: 2;
 }
 
@@ -235,14 +257,16 @@ body {
 }
 
 .nav-link::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 0;
   height: 1px;
   bottom: -4px;
   left: 50%;
   background-color: currentColor;
-  transition: width 0.3s ease, left 0.3s ease;
+  transition:
+    width 0.3s ease,
+    left 0.3s ease;
 }
 
 .nav-link:hover::after {
@@ -257,7 +281,7 @@ body {
 .btn-dark {
   background: #000;
   color: #fff;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
   font-size: 0.75rem;
   padding: 0.875rem 2.125rem;
   white-space: nowrap;
@@ -269,7 +293,7 @@ body {
 }
 
 .btn-dark::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -289,7 +313,7 @@ body {
 
 .btn-outline {
   border: 1px solid #000;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
   font-size: 0.75rem;
   padding: 0.75rem 2.125rem;
   background: transparent;
@@ -301,7 +325,7 @@ body {
 }
 
 .btn-outline::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -345,29 +369,28 @@ body {
   background: #000;
   color: #fff;
   font-size: 9px;
-  letter-spacing: .1em;
+  letter-spacing: 0.1em;
   padding: 2px 7px;
   z-index: 3;
 }
 
 /* Product Card Hover Effects */
-.group {
+.group.cursor-pointer {
   transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
-.group:hover {
+.group.cursor-pointer:hover {
   transform: translateY(-8px);
 }
-.group:hover .watch-svg,
+.group.cursor-pointer:hover .watch-svg,
 .text-center:hover .watch-svg {
   transform: scale(1.05) rotate(3deg);
 }
-.group:hover .price {
+.group.cursor-pointer:hover .price {
   color: #555;
 }
-.group:hover .prod-name {
+.group.cursor-pointer:hover .prod-name {
   transform: translateY(-2px);
 }
-
 
 /* ---------- NEW ANIMATION STYLES ---------- */
 
@@ -383,7 +406,11 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10000;
-  transition: width 0.3s, height 0.3s, background 0.3s, border-color 0.3s;
+  transition:
+    width 0.3s,
+    height 0.3s,
+    background 0.3s,
+    border-color 0.3s;
 }
 
 .cursor-inner {
@@ -397,7 +424,10 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10001;
-  transition: width 0.3s, height 0.3s, background 0.3s;
+  transition:
+    width 0.3s,
+    height 0.3s,
+    background 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -423,7 +453,7 @@ body {
   background-color: #000;
 }
 .cursor-inner.view::before {
-  content: 'VIEW';
+  content: "VIEW";
 }
 
 /* Scroll Progress */
@@ -455,7 +485,10 @@ body {
   opacity: 0;
   pointer-events: none;
   transform: translateY(20px);
-  transition: opacity 0.4s, transform 0.4s, background 0.3s;
+  transition:
+    opacity 0.4s,
+    transform 0.4s,
+    background 0.3s;
 }
 
 .back-to-top.visible {
@@ -510,42 +543,46 @@ header {
   top: 0;
   z-index: 100;
   background: rgba(255, 255, 255, 1);
-  transition: background 0.4s, padding 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
+  transition:
+    background 0.4s,
+    padding 0.4s,
+    box-shadow 0.4s,
+    backdrop-filter 0.4s;
 }
 
 header.scrolled {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 header.scrolled > div {
-    padding-top: 0.75rem !important;
-    padding-bottom: 0.75rem !important;
-    transition: padding 0.4s;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  transition: padding 0.4s;
 }
 
 /* Shimmer effect for buttons */
 .btn-dark {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
 .btn-dark::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: rotate(30deg) translateX(-100%);
-    transition: transform 0.6s;
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg) translateX(-100%);
+  transition: transform 0.6s;
+  pointer-events: none;
 }
 .btn-dark:hover::after {
-    transform: rotate(30deg) translateX(100%);
+  transform: rotate(30deg) translateX(100%);
 }
