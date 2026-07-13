@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
+import CustomCursor from "@/components/CustomCursor";
 
 const cormorantGaramond = Cormorant_Garamond({
   weight: ["400", "500", "600"],
@@ -31,6 +32,7 @@ export default function RootLayout({
     >
       <body className="bg-white text-[#111111] antialiased">
         {children}
+        <CustomCursor />
       </body>
     </html>
   );

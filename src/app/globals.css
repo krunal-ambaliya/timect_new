@@ -586,3 +586,28 @@ header.scrolled > div {
 .btn-dark:hover::after {
   transform: rotate(30deg) translateX(100%);
 }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Swiper-like Scrollbar Styles */
+.swiper-scrollbar {
+  position: relative;
+  background: #e5e5e5;
+  height: 1px;
+  width: 100%;
+}
+.swiper-scrollbar-drag {
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #111111;
+  cursor: pointer;
+}

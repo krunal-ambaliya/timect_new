@@ -6,7 +6,7 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Lenis from "@studio-freight/lenis";
 
-import CustomCursor from "@/components/CustomCursor";
+
 import Preloader from "@/components/Preloader";
 import TopStrip from "@/components/TopStrip";
 import Header from "@/components/Header";
@@ -48,8 +48,6 @@ export default function Home() {
     gsap.ticker.lagSmoothing(0);
 
     // Elements
-    const cursorOuter = document.querySelector('.cursor-outer');
-    const cursorInner = document.querySelector('.cursor-inner');
     const preloader = document.querySelector('.preloader');
     const preloaderLine = document.querySelector('.preloader-line');
     const preloaderLogo = document.querySelector('.preloader-logo');
@@ -60,52 +58,6 @@ export default function Home() {
     const heroImg = document.querySelector('.hero img');
     const scrollProgress = document.querySelector('.scroll-progress');
     const backToTop = document.querySelector('.back-to-top');
-
-    // Cursor Logic
-    let mouse = { x: 0, y: 0 };
-    let cursorOuterPos = { x: 0, y: 0 };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-      
-      if(cursorInner) {
-          gsap.to(cursorInner, {
-              x: mouse.x,
-              y: mouse.y,
-              duration: 0.1,
-              ease: "power2.out"
-          });
-      }
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-
-    const tickerCursor = () => {
-      if(cursorOuter) {
-        cursorOuterPos.x += (mouse.x - cursorOuterPos.x) * 0.2;
-        cursorOuterPos.y += (mouse.y - cursorOuterPos.y) * 0.2;
-        gsap.set(cursorOuter, { x: cursorOuterPos.x, y: cursorOuterPos.y });
-      }
-    };
-    gsap.ticker.add(tickerCursor);
-
-    const hoverElements = document.querySelectorAll('a, button, .watch-wrap');
-    
-    const onEnter = (e: Event) => {
-      if(cursorOuter) cursorOuter.classList.add('hover');
-      if((e.currentTarget as HTMLElement).classList.contains('watch-wrap') && cursorInner) {
-        cursorInner.classList.add('view');
-      }
-    };
-    const onLeave = () => {
-      if(cursorOuter) cursorOuter.classList.remove('hover');
-      if(cursorInner) cursorInner.classList.remove('view');
-    };
-
-    hoverElements.forEach(el => {
-      el.addEventListener('mouseenter', onEnter);
-      el.addEventListener('mouseleave', onLeave);
-    });
 
     // Initial States
     gsap.set(header, { yPercent: -100, opacity: 0 });
@@ -254,12 +206,6 @@ export default function Home() {
     });
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      gsap.ticker.remove(tickerCursor);
-      hoverElements.forEach(el => {
-        el.removeEventListener('mouseenter', onEnter);
-        el.removeEventListener('mouseleave', onLeave);
-      });
       allButtons.forEach(btn => {
         btn.removeEventListener('mousedown', onMouseDown);
         btn.removeEventListener('mouseup', onMouseUp);
@@ -271,7 +217,6 @@ export default function Home() {
 
   return (
     <div ref={containerRef}>
-      <CustomCursor />
       <div className="scroll-progress"></div>
       <Preloader />
       <div className="back-to-top">↑</div>
