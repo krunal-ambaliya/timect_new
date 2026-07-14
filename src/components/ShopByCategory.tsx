@@ -5,24 +5,24 @@ export default function ShopByCategory() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
         <div className="cat-tile" style={{ background: 'linear-gradient(160deg,#2a2a2a,#0a0a0a)' }}>
-          <img src="/images/image_2.png" alt="Quartz Precision" />
+          <img src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png" alt="Quartz Precision" />
           <div className="label">Quartz Precision</div>
         </div>
         <div className="cat-tile" style={{ background: 'linear-gradient(160deg,#3a3a3a,#0a0a0a)' }}>
-          <img src="/images/image_5.jpg" alt="Sports & Chronographs" />
+          <img src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_5.jpg" alt="Sports & Chronographs" />
           <div className="label">Sports & Chronographs</div>
         </div>
         <div className="cat-tile" style={{ background: 'linear-gradient(160deg,#0c3a52,#031521)' }}>
-          <img src="/images/watch_size.jpg" alt="Case Size" />
+          <img src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048494/timect/watch_size.jpg" alt="Case Size" />
           <div className="label">Case Size</div>
         </div>
 
         <div className="cat-tile" style={{ background: 'linear-gradient(160deg,#161616,#000)' }}>
-          <img src="/images/image_5.jpg" alt="Dress & Luxury" />
+          <img src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_5.jpg" alt="Dress & Luxury" />
           <div className="label">Dress & Luxury</div>
         </div>
         <div className="cat-tile" style={{ background: 'linear-gradient(160deg,#2a2a2a,#0a0a0a)' }}>
-          <img src="/images/image_8.webp" alt="Material" />
+          <img src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048477/timect/image_8.webp" alt="Material" />
           <div className="label">Material</div>
         </div>
 

@@ -1,91 +1,81 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductInfo from '@/components/product/ProductInfo';
 import ProductAccordion from '@/components/product/ProductAccordion';
 import RelatedProducts from '@/components/product/RelatedProducts';
 import Footer from '@/components/Footer';
-
-// Mock data for the product page
-const productData = {
-  id: '1',
-  brand: 'Exclusive',
-  title: 'HYDROCONQUEST EXCLUSIVE EDITION',
-  subtitle: 'Automatic watch, Ø 42.00 mm, stainless steel and ceramic bezel, L3.788.4.98.6',
-  price: '₹225,000.00',
-  priceSubtext: 'Recommended Retail Price - Our authorized retailers remain free to set their own price',
-  sizes: ['39 mm', '42 mm'],
-  images: [
-    '/images/image_4.png', // Main watch image
-    '/images/image_2.png', // Alternate view
-    '/images/image_3.jpg', // Detail view
-    '/images/image_5.jpg', // Detail view
-    '/images/image_6.jpg', // Detail view
-  ],
-  variants: [
-    { id: 'v1', name: 'Blue', image: '/images/image_4.png' },
-    { id: 'v2', name: 'Green', image: '/images/image_7.png' },
-    { id: 'v3', name: 'Black', image: '/images/image_8.webp' },
-    { id: 'v4', name: 'Silver', image: '/images/image_9.png' },
-    { id: 'v5', name: 'Gold', image: '/images/daydate_blue.png' },
-  ],
-  accordionItems: [
-    {
-      title: 'Case',
-      content: (
-        <ul className="space-y-2 list-disc list-inside">
-          <li><strong>Material:</strong> Stainless steel and ceramic bezel</li>
-          <li><strong>Glass:</strong> Scratch-resistant sapphire crystal, with several layers of anti-reflective coating on both sides</li>
-          <li><strong>Dimension:</strong> 42.00 mm</li>
-          <li><strong>Water Resistance:</strong> Water-resistant to 30 bar</li>
-        </ul>
-      ),
-    },
-    {
-      title: 'Dial & Hands',
-      content: (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="font-semibold text-black">Dial color</p>
-            <p>Frosted Blue sunray</p>
-          </div>
-          <div>
-            <p className="font-semibold text-black">Hands</p>
-            <p>Silvered polished hands</p>
-          </div>
-          <div>
-            <p className="font-semibold text-black">Hour markers</p>
-            <p>Applied indexes</p>
-          </div>
-          <div>
-            <p className="font-semibold text-black">Specificities</p>
-            <p>Swiss Super-LumiNova®</p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: 'Movement & Functions',
-      content: (
-        <ul className="space-y-2">
-          <li><strong>Movement Type:</strong> Automatic</li>
-          <li><strong>Caliber:</strong> L888</li>
-          <li><strong>Power Reserve:</strong> ~72 hours</li>
-        </ul>
-      ),
-    },
-    {
-      title: 'Strap',
-      content: <p>Stainless steel bracelet with double safety folding clasp and integrated diving extension.</p>,
-    },
-    {
-      title: 'General',
-      content: <p>Exclusive edition combining technical excellence with elegant design.</p>,
-    },
-  ],
-};
+import { getMainProduct, Product } from '@/db/actions';
 
 export default function ProductPage() {
+  const [productData, setProductData] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMainProduct().then((data) => {
+      setProductData(data);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!productData) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-gray-500 font-medium">Product not found</p>
+      </div>
+    );
+  }
+
+  const accordionItems = (productData.specifications || []).map((spec) => {
+
+    let content: React.ReactNode;
+    if (spec.type === 'details' && spec.items) {
+      content = (
+        <ul className="space-y-2 list-disc list-inside">
+          {spec.items.map((item, idx) => {
+            if (typeof item !== 'string') return null;
+            const parts = item.split(': ');
+            if (parts.length > 1) {
+              return (
+                <li key={idx}>
+                  <strong>{parts[0]}:</strong> {parts.slice(1).join(': ')}
+                </li>
+              );
+            }
+            return <li key={idx}>{item}</li>;
+          })}
+        </ul>
+      );
+    } else if (spec.type === 'grid' && spec.items) {
+      content = (
+        <div className="grid grid-cols-2 gap-4">
+          {spec.items.map((item: any, idx) => (
+            <div key={idx}>
+              <p className="font-semibold text-black">{item.label}</p>
+              <p>{item.value}</p>
+            </div>
+          ))}
+        </div>
+      );
+    } else {
+      content = <p>{spec.content}</p>;
+    }
+
+    return {
+      title: spec.title,
+      content,
+    };
+  });
+
   return (
     <div className="min-h-screen bg-white">
       {/* Optional Top Nav / Breadcrumbs could go here */}
@@ -94,24 +84,24 @@ export default function ProductPage() {
           
           {/* Left Column - Gallery */}
           <div className="w-full lg:sticky lg:top-24 h-fit">
-            <ProductGallery images={productData.images} />
+            <ProductGallery images={productData.images || []} />
           </div>
 
           {/* Right Column - Product Info & Details */}
           <div className="w-full max-w-xl mx-auto lg:mx-0 pt-4 lg:pt-12">
             <ProductInfo
-              brand={productData.brand}
-              title={productData.title}
-              subtitle={productData.subtitle}
-              sizes={productData.sizes}
+              brand={productData.brand || ""}
+              title={productData.title || ""}
+              subtitle={productData.subtitle || ""}
+              sizes={productData.sizes || []}
               price={productData.price}
-              priceSubtext={productData.priceSubtext}
-              variants={productData.variants}
-              selectedVariantId={productData.variants[0].id}
+              priceSubtext={productData.priceSubtext || ""}
+              variants={productData.variants || []}
+              selectedVariantId={productData.variants?.[0]?.id || ""}
               onVariantSelect={() => {}} // Will implement client-side in a real scenario
             />
             
-            <ProductAccordion items={productData.accordionItems} />
+            <ProductAccordion items={accordionItems} />
           </div>
 
         </div>

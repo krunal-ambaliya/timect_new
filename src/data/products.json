@@ -1,0 +1,225 @@
+{
+  "mainProduct": {
+    "id": "1",
+    "brand": "Exclusive",
+    "title": "HYDROCONQUEST EXCLUSIVE EDITION",
+    "subtitle": "Automatic watch, Ø 42.00 mm, stainless steel and ceramic bezel, L3.788.4.98.6",
+    "price": "₹225,000.00",
+    "priceSubtext": "Recommended Retail Price - Our authorized retailers remain free to set their own price",
+    "sizes": ["39 mm", "42 mm"],
+    "images": [
+      "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_3.jpg",
+      "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_5.jpg",
+      "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048475/timect/image_6.jpg"
+    ],
+    "variants": [
+      { "id": "v1", "name": "Blue", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png" },
+      { "id": "v2", "name": "Green", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048476/timect/image_7.jpg" },
+      { "id": "v3", "name": "Black", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048477/timect/image_8.webp" },
+      { "id": "v4", "name": "Silver", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048480/timect/image_9.png" },
+      { "id": "v5", "name": "Gold", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048468/timect/daydate_blue.png" }
+    ],
+    "specifications": [
+      {
+        "title": "Case",
+        "type": "details",
+        "items": [
+          "Material: Stainless steel and ceramic bezel",
+          "Glass: Scratch-resistant sapphire crystal, with several layers of anti-reflective coating on both sides",
+          "Dimension: 42.00 mm",
+          "Water Resistance: Water-resistant to 30 bar"
+        ]
+      },
+      {
+        "title": "Dial & Hands",
+        "type": "grid",
+        "items": [
+          { "label": "Dial color", "value": "Frosted Blue sunray" },
+          { "label": "Hands", "value": "Silvered polished hands" },
+          { "label": "Hour markers", "value": "Applied indexes" },
+          { "label": "Specificities", "value": "Swiss Super-LumiNova®" }
+        ]
+      },
+      {
+        "title": "Movement & Functions",
+        "type": "details",
+        "items": [
+          "Movement Type: Automatic",
+          "Caliber: L888",
+          "Power Reserve: ~72 hours"
+        ]
+      },
+      {
+        "title": "Strap",
+        "type": "text",
+        "content": "Stainless steel bracelet with double safety folding clasp and integrated diving extension."
+      },
+      {
+        "title": "General",
+        "type": "text",
+        "content": "Exclusive edition combining technical excellence with elegant design."
+      }
+    ]
+  },
+  "newArrivals": [
+    {
+      "id": 1,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "name": "Presage Classic Series \"Tomioka Silk Promotion Organization\" Limited Edition - HCC008J1",
+      "price": "₹ 1,30,000",
+      "tag": "NEW",
+      "emi": "NO COST EMI"
+    },
+    {
+      "id": 2,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "name": "Presage Classic Series with Sakura Iro Light Pink Dial Silk - HCC003J1",
+      "price": "₹ 1,10,000",
+      "tag": "NEW",
+      "emi": "NO COST EMI"
+    },
+    {
+      "id": 3,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "name": "Presage Classic Series with Wakatake Iro Light Green Dial Silk - HCC002J1",
+      "price": "₹ 1,10,000",
+      "tag": "NEW",
+      "emi": "NO COST EMI"
+    },
+    {
+      "id": 4,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "name": "Seiko Presage Classic Series with Shironeri Dial Silk - HCC001J1",
+      "price": "₹ 1,10,000",
+      "tag": "NEW",
+      "emi": "NO COST EMI"
+    },
+    {
+      "id": 5,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "name": "Seiko Prospex Alpinist Mechanical - SPB121J1",
+      "price": "₹ 75,000",
+      "tag": "NEW",
+      "emi": "NO COST EMI"
+    },
+    {
+      "id": 6,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "name": "Astron GPS Solar 5X Dual-Time - SSH107J1",
+      "price": "₹ 2,40,000",
+      "tag": "NEW",
+      "emi": "NO COST EMI"
+    }
+  ],
+  "recommended": [
+    {
+      "id": 1,
+      "name": "King Seiko",
+      "code": "SLA063",
+      "price": "₹ 2,10,000",
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+    },
+    {
+      "id": 2,
+      "name": "Prospex",
+      "code": "SPB319",
+      "price": "₹ 1,20,000",
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+    },
+    {
+      "id": 3,
+      "name": "Presage",
+      "code": "HCC002",
+      "price": "₹ 63,000",
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+    },
+    {
+      "id": 4,
+      "name": "Seiko 5 Sports",
+      "code": "SSPL83",
+      "price": "₹ 32,000",
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+    },
+    {
+      "id": 5,
+      "name": "Astron",
+      "code": "SSH175",
+      "price": "₹ 1,85,000",
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+    },
+    {
+      "id": 6,
+      "name": "Seiko Power Design Project",
+      "code": "SSEH021",
+      "price": "₹ 45,000",
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+    }
+  ],
+  "relatedProducts": [
+    {
+      "id": 1,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "collection": "HYDROCONQUEST",
+      "description": "39 mm - Quartz watch - Stainless steel",
+      "price": "₹114,000.00"
+    },
+    {
+      "id": 2,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "collection": "HYDROCONQUEST",
+      "description": "44 mm - Quartz watch - Stainless steel",
+      "price": "₹120,000.00"
+    },
+    {
+      "id": 3,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "collection": "HYDROCONQUEST",
+      "description": "44 mm - Quartz watch - Stainless steel",
+      "price": "₹120,000.00"
+    },
+    {
+      "id": 4,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "collection": "HYDROCONQUEST",
+      "description": "41 mm - Quartz watch - Stainless steel and yellow PVD coating",
+      "price": "₹133,000.00"
+    },
+    {
+      "id": 5,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "collection": "HYDROCONQUEST",
+      "description": "41 mm - Quartz watch - Stainless steel and red PVD coating",
+      "price": "₹133,000.00"
+    },
+    {
+      "id": 6,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "collection": "HYDROCONQUEST",
+      "description": "39 mm - Automatic watch",
+      "price": "₹140,000.00"
+    },
+    {
+      "id": 7,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "collection": "HYDROCONQUEST",
+      "description": "39 mm - Quartz watch - Stainless steel",
+      "price": "₹114,000.00"
+    },
+    {
+      "id": 8,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "collection": "HYDROCONQUEST",
+      "description": "39 mm - Quartz watch - Stainless steel",
+      "price": "₹114,000.00"
+    },
+    {
+      "id": 9,
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "collection": "HYDROCONQUEST",
+      "description": "39 mm - Quartz watch - Stainless steel",
+      "price": "₹114,000.00"
+    }
+  ]
+}

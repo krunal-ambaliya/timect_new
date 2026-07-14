@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import Button from '@/components/Button';
+import { getNewArrivals, Product } from '@/db/actions';
 
 export default function NewArrivals() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -42,56 +44,11 @@ export default function NewArrivals() {
     }
   };
 
-  const products = [
-    {
-      id: 1,
-      image: '/images/image_2.png',
-      name: 'Presage Classic Series "Tomioka Silk Promotion Organization" Limited Edition - HCC008J1',
-      price: '₹ 130,000',
-      tag: 'NEW',
-      emi: 'NO COST EMI'
-    },
-    {
-      id: 2,
-      image: '/images/image_4.png',
-      name: 'Presage Classic Series with Sakura Iro Light Pink Dial Silk - HCC003J1',
-      price: '₹ 110,000',
-      tag: 'NEW',
-      emi: 'NO COST EMI'
-    },
-    {
-      id: 3,
-      image: '/images/image_2.png',
-      name: 'Presage Classic Series with Wakatake Iro Light Green Dial Silk - HCC002J1',
-      price: '₹ 110,000',
-      tag: 'NEW',
-      emi: 'NO COST EMI'
-    },
-    {
-      id: 4,
-      image: '/images/image_4.png',
-      name: 'Seiko Presage Classic Series with Shironeri Dial Silk - HCC001J1',
-      price: '₹ 110,000',
-      tag: 'NEW',
-      emi: 'NO COST EMI'
-    },
-    {
-      id: 5,
-      image: '/images/image_2.png',
-      name: 'Seiko Prospex Alpinist Mechanical - SPB121J1',
-      price: '₹ 75,000',
-      tag: 'NEW',
-      emi: 'NO COST EMI'
-    },
-    {
-      id: 6,
-      image: '/images/image_4.png',
-      name: 'Astron GPS Solar 5X Dual-Time - SSH107J1',
-      price: '₹ 2,40,000',
-      tag: 'NEW',
-      emi: 'NO COST EMI'
-    }
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getNewArrivals().then(setProducts);
+  }, []);
 
   return (
     <section className="max-w-[1400px] mx-auto px-8 py-16">
@@ -136,23 +93,30 @@ export default function NewArrivals() {
                 {product.tag && (
                   <span className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10">{product.tag}</span>
                 )}
-                <img src={product.image} alt={product.name} className="w-full h-auto object-contain group-hover/card:scale-105 transition-transform duration-500 pointer-events-none" />
+                <img src={product.image || ''} alt={product.name || ''} className="w-full h-auto object-contain group-hover/card:scale-105 transition-transform duration-500 pointer-events-none" />
                 {product.emi && (
                   <span className="absolute bottom-0 right-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10">{product.emi}</span>
                 )}
               </div>
               <div className="space-y-2 px-2 pointer-events-none">
-                <div className="text-[13px] text-gray-800 leading-snug line-clamp-2 min-h-[2.5rem]">{product.name}</div>
+                <div className="text-[13px] text-gray-800 leading-snug line-clamp-2 min-h-[2.5rem]">{product.name || ''}</div>
                 <div className="text-[13px] text-gray-900">{product.price}</div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="flex justify-center mt-12 border-t border-gray-200 pt-12 relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4">
-            <button className="bg-[#222] text-white text-[12px] tracking-widest px-10 py-3 hover:bg-black transition-colors font-medium cursor-pointer relative z-20">VIEW ALL</button>
-          </div>
+        <div className="flex justify-center mt-12">
+          <Button
+            bgColor="#fff"
+            textColor="#000"
+            borderColor="#222"
+            hoverBgColor="#000000"
+            hoverTextColor="#ffffff"
+            className="text-[12px] tracking-widest px-10 py-3 font-medium cursor-pointer"
+          >
+            VIEW ALL
+          </Button>
         </div>
       </div>
     </section>

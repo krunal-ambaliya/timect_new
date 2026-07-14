@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useState } from 'react';
+import Image from "next/image";
+import { useState } from "react";
+import Button from "@/components/Button";
 
 interface ProductVariant {
   id: string;
@@ -49,7 +50,10 @@ export default function ProductInfo({
           {title}
         </h1>
         <p className="text-gray-600 text-sm">{subtitle}</p>
-        <a href="#" className="text-sm underline mt-2 inline-block text-gray-500 hover:text-gray-900 transition-colors">
+        <a
+          href="#"
+          className="text-sm underline mt-2 inline-block text-gray-500 hover:text-gray-900 transition-colors"
+        >
           Read more
         </a>
       </div>
@@ -65,8 +69,8 @@ export default function ProductInfo({
                 onClick={() => setSelectedSize(size)}
                 className={`px-4 py-2 text-sm border transition-colors ${
                   selectedSize === size
-                    ? 'border-[#009ceb] text-[#009ceb] bg-[#f0f8ff]'
-                    : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                    ? "border-[#009ceb] text-[#009ceb] bg-[#f0f8ff]"
+                    : "border-gray-300 text-gray-700 hover:border-gray-400"
                 }`}
               >
                 {size}
@@ -86,9 +90,16 @@ export default function ProductInfo({
 
       {/* Actions */}
       <div className="mt-4 flex flex-col gap-3">
-        <button className="w-full bg-[#0a1e36] hover:bg-[#132c4a] text-white py-4 font-semibold text-sm tracking-wide transition-colors">
+        <Button
+          bgColor="#0a1e36"
+          textColor="#ffffff"
+          borderColor="#0a1e36"
+          hoverBgColor="#fff"
+          hoverTextColor="#000 "
+          className="w-full py-4 font-semibold text-sm tracking-wide"
+        >
           Enquire About Availability
-        </button>
+        </Button>
         <p className="text-xs text-gray-600 text-center mt-1">
           Available Exclusively at Corporate Boutiques and e-commerce
         </p>
@@ -107,8 +118,8 @@ export default function ProductInfo({
                 onClick={() => onVariantSelect(variant.id)}
                 className={`relative w-14 h-16 border bg-white transition-all ${
                   selectedVariantId === variant.id
-                    ? 'border-gray-400 shadow-sm'
-                    : 'border-transparent hover:border-gray-200'
+                    ? "border-gray-400 shadow-sm"
+                    : "border-transparent hover:border-gray-200"
                 }`}
               >
                 <Image
