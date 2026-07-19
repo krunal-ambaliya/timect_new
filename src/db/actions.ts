@@ -139,3 +139,19 @@ export async function getRelatedProducts(): Promise<Product[]> {
     return [];
   }
 }
+
+export async function getProductById(id: number): Promise<Product | null> {
+  try {
+    const rows = await sql`
+      SELECT * FROM products 
+      WHERE id = ${id}
+      LIMIT 1
+    `;
+    if (rows.length === 0) return null;
+    return mapRowToProduct(rows[0]);
+  } catch (error) {
+    console.error(`Error fetching product with id ${id}:`, error);
+    return null;
+  }
+}
+

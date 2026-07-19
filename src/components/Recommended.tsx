@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import { getRecommended, Product } from "@/db/actions";
+import { useRouter } from "next/navigation";
 
 export default function Recommended() {
+  const router = useRouter();
   const defaultImage = "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048484/timect/right-main.png";
   const [mainImage, setMainImage] = useState(defaultImage);
   const [products, setProducts] = useState<Product[]>([]);
@@ -44,6 +46,7 @@ export default function Recommended() {
               key={product.id}
               className="text-center cursor-pointer"
               onMouseEnter={() => setMainImage(product.image || '')}
+              onClick={() => router.push(`/product/${product.id}`)}
             >
               <div className="watch-wrap">
                 <img

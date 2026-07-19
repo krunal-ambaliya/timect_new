@@ -3,10 +3,10 @@
 import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getRelatedProducts, Product } from '@/db/actions';
-
-
+import { useRouter } from 'next/navigation';
 
 export default function RelatedProducts() {
+  const router = useRouter();
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -23,6 +23,7 @@ export default function RelatedProducts() {
   const dragInfo = useRef({
     startX: 0,
     scrollLeft: 0,
+    hasMoved: false,
   });
 
   const updateScrollIndicator = () => {
@@ -45,6 +46,7 @@ export default function RelatedProducts() {
       setIsDragging(true);
       dragInfo.current.startX = e.pageX - scrollRef.current.offsetLeft;
       dragInfo.current.scrollLeft = scrollRef.current.scrollLeft;
+      dragInfo.current.hasMoved = false;
     }
   };
 
@@ -76,6 +78,9 @@ export default function RelatedProducts() {
         const x = e.pageX - scrollRef.current.offsetLeft;
         const walk = (x - dragInfo.current.startX) * 1.5;
         scrollRef.current.scrollLeft = dragInfo.current.scrollLeft - walk;
+        if (Math.abs(walk) > 5) {
+          dragInfo.current.hasMoved = true;
+        }
       }
 
       if (isDraggingScrollbar && scrollbarRef.current && scrollRef.current) {
@@ -142,6 +147,11 @@ export default function RelatedProducts() {
           {relatedProducts.map((product) => (
             <div
               key={product.id}
+              onClick={() => {
+                if (!dragInfo.current.hasMoved) {
+                  router.push(`/product/${product.id}`);
+                }
+              }}
               className="w-[280px] shrink-0 text-left cursor-pointer group"
             >
               {/* Product Image Container */}

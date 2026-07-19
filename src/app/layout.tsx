@@ -16,8 +16,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "SEIKO - Official Online Store",
-  description: "Celebrating 145 Years of Japanese Craftsmanship",
+  title: "Timect - Official Online Store",
+  description: "Celebrating 145 Years of Craftsmanship",
 };
 
 export default function RootLayout({

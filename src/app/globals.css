@@ -322,7 +322,10 @@ body {
   overflow: hidden;
   white-space: nowrap;
   z-index: 1;
-  transition: color 0.4s, background-color 0.4s, border-color 0.4s;
+  transition:
+    color 0.4s,
+    background-color 0.4s,
+    border-color 0.4s;
 }
 
 .btn-outline::before {
@@ -593,15 +596,15 @@ header.scrolled > div {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* Swiper-like Scrollbar Styles */
 .swiper-scrollbar {
   position: relative;
   background: #e5e5e5;
-  height: 1px;
+  height: 5px;
   width: 100%;
 }
 .swiper-scrollbar-drag {
