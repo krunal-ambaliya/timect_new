@@ -18,7 +18,7 @@ export default function Footer() {
             craftsmanship.
           </p>
           <div className="flex gap-3 mt-5 text-gray-300">
-            <span className="social-icon">◎</span>
+            <span className="social-icon">  ◎</span>
             <span className="social-icon">◎</span>
             <span className="social-icon">▶</span>
           </div>

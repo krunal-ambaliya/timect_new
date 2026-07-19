@@ -35,10 +35,12 @@ async function main() {
   console.log("Connecting to Neon database...");
   
   // 2. Create products table
-  console.log("Creating 'products' table if not exists...");
+  console.log("Recreating 'products' table...");
+  await sql`DROP TABLE IF EXISTS products CASCADE;`;
   await sql`
-    CREATE TABLE IF NOT EXISTS products (
+    CREATE TABLE products (
       id SERIAL PRIMARY KEY,
+      slug TEXT UNIQUE,
       is_main_product BOOLEAN NOT NULL DEFAULT FALSE,
       is_new_arrival BOOLEAN NOT NULL DEFAULT FALSE,
       is_recommended BOOLEAN NOT NULL DEFAULT FALSE,
@@ -80,18 +82,101 @@ async function main() {
   
   const rawData = fs.readFileSync(productsPath, "utf-8");
   const data = JSON.parse(rawData);
+
+  // Helper function to slugify text
+  function slugify(text: string): string {
+    return text
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w\-]+/g, "")
+      .replace(/\-\-+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
+  }
+
+  // Pre-calculate DB IDs and base slugs in sequence of insertion
+  const items: {
+    type: "main" | "arrival" | "recommended" | "related";
+    originalData: any;
+    dbId: number;
+    baseSlug: string;
+  }[] = [];
+
+  let currentDbId = 1;
+
+  if (data.mainProduct) {
+    const baseName = data.mainProduct.title || "product";
+    items.push({
+      type: "main",
+      originalData: data.mainProduct,
+      dbId: currentDbId++,
+      baseSlug: slugify(baseName),
+    });
+  }
+
+  for (const item of (data.newArrivals || [])) {
+    const baseName = item.name || "product";
+    items.push({
+      type: "arrival",
+      originalData: item,
+      dbId: currentDbId++,
+      baseSlug: slugify(baseName),
+    });
+  }
+
+  for (const item of (data.recommended || [])) {
+    const baseName = item.name || "product";
+    items.push({
+      type: "recommended",
+      originalData: item,
+      dbId: currentDbId++,
+      baseSlug: slugify(baseName),
+    });
+  }
+
+  for (const item of (data.relatedProducts || [])) {
+    const baseName = (item.collection || "") + (item.description ? " " + item.description : "");
+    items.push({
+      type: "related",
+      originalData: item,
+      dbId: currentDbId++,
+      baseSlug: slugify(baseName || "product"),
+    });
+  }
+
+  // Count occurrences of each base slug to find duplicates
+  const slugCounts: Record<string, number> = {};
+  for (const item of items) {
+    slugCounts[item.baseSlug] = (slugCounts[item.baseSlug] || 0) + 1;
+  }
+
+  // Generate final unique slugs
+  const finalSlugs = new Map<number, string>();
+  for (const item of items) {
+    const count = slugCounts[item.baseSlug];
+    if (count > 1) {
+      // Append database ID if multiple products share the same name/slug
+      finalSlugs.set(item.dbId, `${item.baseSlug}-${item.dbId}`);
+    } else {
+      finalSlugs.set(item.dbId, item.baseSlug);
+    }
+  }
+
+  let insertCount = 1;
   
   console.log("Seeding main product...");
   const mainProduct = data.mainProduct;
   if (mainProduct) {
+    const slug = finalSlugs.get(insertCount++) || "";
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        name, price, image, brand, title, subtitle, price_subtext,
+        slug, name, price, image, brand, title, subtitle, price_subtext,
         sizes, images, variants, specifications
       ) VALUES (
         TRUE, FALSE, FALSE, FALSE,
-        ${mainProduct.title}, ${mainProduct.price}, ${mainProduct.images?.[0] || null}, 
+        ${slug}, ${mainProduct.title}, ${mainProduct.price}, ${mainProduct.images?.[0] || null}, 
         ${mainProduct.brand || null}, ${mainProduct.title || null}, ${mainProduct.subtitle || null}, ${mainProduct.priceSubtext || null},
         ${JSON.stringify(mainProduct.sizes || [])}, ${JSON.stringify(mainProduct.images || [])}, 
         ${JSON.stringify(mainProduct.variants || [])}, ${JSON.stringify(mainProduct.specifications || [])}
@@ -102,13 +187,14 @@ async function main() {
   console.log("Seeding new arrivals...");
   const newArrivals = data.newArrivals || [];
   for (const item of newArrivals) {
+    const slug = finalSlugs.get(insertCount++) || "";
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        name, price, image, tag, emi
+        slug, name, price, image, tag, emi
       ) VALUES (
         FALSE, TRUE, FALSE, FALSE,
-        ${item.name}, ${item.price}, ${item.image || null}, ${item.tag || null}, ${item.emi || null}
+        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.tag || null}, ${item.emi || null}
       );
     `;
   }
@@ -116,13 +202,14 @@ async function main() {
   console.log("Seeding recommended products...");
   const recommended = data.recommended || [];
   for (const item of recommended) {
+    const slug = finalSlugs.get(insertCount++) || "";
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        name, price, image, code
+        slug, name, price, image, code
       ) VALUES (
         FALSE, FALSE, TRUE, FALSE,
-        ${item.name}, ${item.price}, ${item.image || null}, ${item.code || null}
+        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.code || null}
       );
     `;
   }
@@ -130,13 +217,14 @@ async function main() {
   console.log("Seeding related products...");
   const relatedProducts = data.relatedProducts || [];
   for (const item of relatedProducts) {
+    const slug = finalSlugs.get(insertCount++) || "";
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        price, image, collection, description
+        slug, price, image, collection, description
       ) VALUES (
         FALSE, FALSE, FALSE, TRUE,
-        ${item.price}, ${item.image || null}, ${item.collection || null}, ${item.description || null}
+        ${slug}, ${item.price}, ${item.image || null}, ${item.collection || null}, ${item.description || null}
       );
     `;
   }

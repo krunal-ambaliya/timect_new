@@ -145,7 +145,7 @@ export default function NewArrivals() {
               key={product.id}
               onClick={() => {
                 if (!dragInfo.current.hasMoved) {
-                  router.push(`/product/${product.id}`);
+                  router.push(`/product/${product.slug}`);
                 }
               }}
               className="text-center w-[280px] flex-shrink-0 group/card cursor-pointer"

@@ -46,7 +46,7 @@ export default function Recommended() {
               key={product.id}
               className="text-center cursor-pointer"
               onMouseEnter={() => setMainImage(product.image || '')}
-              onClick={() => router.push(`/product/${product.id}`)}
+              onClick={() => router.push(`/product/${product.slug}`)}
             >
               <div className="watch-wrap">
                 <img

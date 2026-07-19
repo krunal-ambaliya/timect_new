@@ -23,6 +23,7 @@ export interface Specification {
 
 export interface Product {
   id: number;
+  slug: string;
   name?: string;
   price: string;
   image?: string;
@@ -56,6 +57,7 @@ export interface Product {
 function mapRowToProduct(row: any): Product {
   return {
     id: row.id,
+    slug: row.slug,
     name: row.name || undefined,
     price: row.price,
     image: row.image || undefined,
@@ -151,6 +153,21 @@ export async function getProductById(id: number): Promise<Product | null> {
     return mapRowToProduct(rows[0]);
   } catch (error) {
     console.error(`Error fetching product with id ${id}:`, error);
+    return null;
+  }
+}
+
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  try {
+    const rows = await sql`
+      SELECT * FROM products 
+      WHERE slug = ${slug}
+      LIMIT 1
+    `;
+    if (rows.length === 0) return null;
+    return mapRowToProduct(rows[0]);
+  } catch (error) {
+    console.error(`Error fetching product with slug ${slug}:`, error);
     return null;
   }
 }

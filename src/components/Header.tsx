@@ -23,12 +23,7 @@ export default function Header() {
             Technology
           </a>
         </nav>
-        <div className="flex items-center gap-5 text-[12px] tracked-sm">
-          <span className="hidden sm:inline">Account</span>
-          <span>♡</span>
-          <span>⚲</span>
-          <span>🛍</span>
-        </div>
+        
       </div>
     </header>
   );

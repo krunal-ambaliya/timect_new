@@ -149,7 +149,7 @@ export default function RelatedProducts() {
               key={product.id}
               onClick={() => {
                 if (!dragInfo.current.hasMoved) {
-                  router.push(`/product/${product.id}`);
+                  router.push(`/product/${product.slug}`);
                 }
               }}
               className="w-[280px] shrink-0 text-left cursor-pointer group"

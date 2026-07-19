@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductInfo from '@/components/product/ProductInfo';
 import ProductAccordion from '@/components/product/ProductAccordion';
@@ -9,29 +9,44 @@ import RelatedProducts from '@/components/product/RelatedProducts';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import TopStrip from '@/components/TopStrip';
-import { getMainProduct, getProductById, Product } from '@/db/actions';
+import { getMainProduct, getProductById, getProductBySlug, Product } from '@/db/actions';
 
 export default function ProductPage() {
   const params = useParams();
-  const idStr = params?.id;
-  const id = idStr ? parseInt(idStr as string, 10) : null;
+  const router = useRouter();
+  const slugStr = params?.slug as string;
 
   const [productData, setProductData] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id !== null && !isNaN(id)) {
-      getProductById(id).then((data) => {
-        setProductData(data);
-        setLoading(false);
-      });
-    } else {
+    if (!slugStr) {
       getMainProduct().then((data) => {
         setProductData(data);
         setLoading(false);
       });
+      return;
     }
-  }, [id]);
+
+    const id = parseInt(slugStr, 10);
+    if (!isNaN(id) && id.toString() === slugStr) {
+      // Legacy ID path: query by ID, then redirect to the correct slug
+      getProductById(id).then((data) => {
+        if (data && data.slug) {
+          router.replace(`/product/${data.slug}`);
+        } else {
+          setProductData(data);
+          setLoading(false);
+        }
+      });
+    } else {
+      // Query by SEO slug
+      getProductBySlug(slugStr).then((data) => {
+        setProductData(data);
+        setLoading(false);
+      });
+    }
+  }, [slugStr, router]);
 
   if (loading) {
     return (
