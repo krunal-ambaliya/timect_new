@@ -65,7 +65,10 @@ async function main() {
       code TEXT,
       
       collection TEXT,
-      description TEXT
+      description TEXT,
+      gender TEXT,
+      rating NUMERIC(2,1) DEFAULT 4.5,
+      hover_image TEXT
     );
   `;
   
@@ -173,13 +176,14 @@ async function main() {
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
         slug, name, price, image, brand, title, subtitle, price_subtext,
-        sizes, images, variants, specifications
+        sizes, images, variants, specifications, gender, rating, hover_image
       ) VALUES (
         TRUE, FALSE, FALSE, FALSE,
         ${slug}, ${mainProduct.title}, ${mainProduct.price}, ${mainProduct.images?.[0] || null}, 
         ${mainProduct.brand || null}, ${mainProduct.title || null}, ${mainProduct.subtitle || null}, ${mainProduct.priceSubtext || null},
         ${JSON.stringify(mainProduct.sizes || [])}, ${JSON.stringify(mainProduct.images || [])}, 
-        ${JSON.stringify(mainProduct.variants || [])}, ${JSON.stringify(mainProduct.specifications || [])}
+        ${JSON.stringify(mainProduct.variants || [])}, ${JSON.stringify(mainProduct.specifications || [])},
+        ${mainProduct.gender || null}, ${mainProduct.rating || 4.5}, ${mainProduct.hover_image || null}
       );
     `;
   }
@@ -191,10 +195,11 @@ async function main() {
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        slug, name, price, image, tag, emi
+        slug, name, price, image, tag, emi, gender, rating, hover_image
       ) VALUES (
         FALSE, TRUE, FALSE, FALSE,
-        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.tag || null}, ${item.emi || null}
+        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.tag || null}, ${item.emi || null},
+        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null}
       );
     `;
   }
@@ -206,10 +211,11 @@ async function main() {
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        slug, name, price, image, code
+        slug, name, price, image, code, gender, rating, hover_image
       ) VALUES (
         FALSE, FALSE, TRUE, FALSE,
-        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.code || null}
+        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.code || null},
+        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null}
       );
     `;
   }
@@ -221,10 +227,11 @@ async function main() {
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        slug, price, image, collection, description
+        slug, price, image, collection, description, gender, rating, hover_image
       ) VALUES (
         FALSE, FALSE, FALSE, TRUE,
-        ${slug}, ${item.price}, ${item.image || null}, ${item.collection || null}, ${item.description || null}
+        ${slug}, ${item.price}, ${item.image || null}, ${item.collection || null}, ${item.description || null},
+        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null}
       );
     `;
   }

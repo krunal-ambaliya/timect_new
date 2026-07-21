@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 
 export default function Recommended() {
   const router = useRouter();
-  const defaultImage = "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048484/timect/right-main.png";
+  const defaultImage =
+    "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048484/timect/right-main.png";
   const [mainImage, setMainImage] = useState(defaultImage);
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -22,6 +23,7 @@ export default function Recommended() {
         style={{
           background: "linear-gradient(160deg,#04121c,#0c2c42 60%,#123a56)",
           minHeight: "480px",
+          maxHeight: "90vh",
           aspectRatio: "auto",
         }}
       >
@@ -44,19 +46,36 @@ export default function Recommended() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="text-center cursor-pointer"
-              onMouseEnter={() => setMainImage(product.image || '')}
+              className="text-center cursor-pointer min-w-0 group"
+              onMouseEnter={() => setMainImage(product.image || "")}
               onClick={() => router.push(`/product/${product.slug}`)}
             >
-              <div className="watch-wrap">
-                <img
-                  src={product.image || ''}
-                  alt={product.name || ''}
-                  className="watch-svg object-contain"
-                />
+              <div className="watch-wrap relative overflow-hidden">
+                {product.hoverImage ? (
+                  <>
+                    <img
+                      src={product.image || ""}
+                      alt={product.name || ""}
+                      className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 group-hover:opacity-0 pointer-events-none"
+                    />
+                    <img
+                      src={product.hoverImage}
+                      alt={`${product.name || ""} hover`}
+                      className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
+                    />
+                  </>
+                ) : (
+                  <img
+                    src={product.image || ""}
+                    alt={product.name || ""}
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                  />
+                )}
               </div>
-              <div className="mt-2 prod-name">{product.name || ''}</div>
-              <div className="prod-code">{product.code || ''}</div>
+              <div className="mt-2 prod-name truncate" title={product.name || ""}>
+                {product.name || ""}
+              </div>
+              <div className="prod-code">{product.code || ""}</div>
               <div className="price">{product.price}</div>
             </div>
           ))}

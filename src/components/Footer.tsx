@@ -1,9 +1,11 @@
+import Link from 'next/link';
+
 export default function Footer() {
   return (
     <footer className="bg-black text-white pt-14 pb-6 px-8">
       <div className="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-5 gap-10 text-[12px] tracked-sm">
         <div className="footer-col">
-          <div className="flex items-center gap-2 mb-3">
+          <Link href="/" className="flex items-center gap-2 mb-3 cursor-pointer">
             <img
               src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048492/timect/timect_logo.png"
               alt="Timect Logo"
@@ -12,7 +14,7 @@ export default function Footer() {
             <span className="serif text-[20px] font-medium tracking-wider">
               Timect
             </span>
-          </div>
+          </Link>
           <p className="text-gray-400 leading-relaxed max-w-[180px]">
             Crafting the future of time through innovation, and exquisite
             craftsmanship.

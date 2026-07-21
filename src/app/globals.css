@@ -385,10 +385,6 @@ body {
 .group.cursor-pointer:hover {
   transform: translateY(-8px);
 }
-.group.cursor-pointer:hover .watch-svg,
-.text-center:hover .watch-svg {
-  transform: scale(1.05) rotate(3deg);
-}
 .group.cursor-pointer:hover .price {
   color: #555;
 }

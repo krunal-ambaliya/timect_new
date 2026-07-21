@@ -7,6 +7,9 @@
     "price": "₹225,000.00",
     "priceSubtext": "Recommended Retail Price - Our authorized retailers remain free to set their own price",
     "sizes": ["39 mm", "42 mm"],
+    "gender": "Unisex",
+    "rating": 4.9,
+    "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
     "images": [
       "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
@@ -70,7 +73,10 @@
       "name": "Presage Classic Series \"Tomioka Silk Promotion Organization\" Limited Edition - HCC008J1",
       "price": "₹ 1,30,000",
       "tag": "NEW",
-      "emi": "NO COST EMI"
+      "emi": "NO COST EMI",
+      "gender": "Men",
+      "rating": 4.8,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 2,
@@ -78,7 +84,10 @@
       "name": "Presage Classic Series with Sakura Iro Light Pink Dial Silk - HCC003J1",
       "price": "₹ 1,10,000",
       "tag": "NEW",
-      "emi": "NO COST EMI"
+      "emi": "NO COST EMI",
+      "gender": "Women",
+      "rating": 4.7,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 3,
@@ -86,7 +95,10 @@
       "name": "Presage Classic Series with Wakatake Iro Light Green Dial Silk - HCC002J1",
       "price": "₹ 1,10,000",
       "tag": "NEW",
-      "emi": "NO COST EMI"
+      "emi": "NO COST EMI",
+      "gender": "Unisex",
+      "rating": 4.6,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 4,
@@ -94,7 +106,10 @@
       "name": "Seiko Presage Classic Series with Shironeri Dial Silk - HCC001J1",
       "price": "₹ 1,10,000",
       "tag": "NEW",
-      "emi": "NO COST EMI"
+      "emi": "NO COST EMI",
+      "gender": "Men",
+      "rating": 4.8,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 5,
@@ -102,7 +117,10 @@
       "name": "Seiko Prospex Alpinist Mechanical - SPB121J1",
       "price": "₹ 75,000",
       "tag": "NEW",
-      "emi": "NO COST EMI"
+      "emi": "NO COST EMI",
+      "gender": "Men",
+      "rating": 4.9,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 6,
@@ -110,7 +128,10 @@
       "name": "Astron GPS Solar 5X Dual-Time - SSH107J1",
       "price": "₹ 2,40,000",
       "tag": "NEW",
-      "emi": "NO COST EMI"
+      "emi": "NO COST EMI",
+      "gender": "Men",
+      "rating": 4.9,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     }
   ],
   "recommended": [
@@ -119,42 +140,60 @@
       "name": "King Seiko",
       "code": "SLA063",
       "price": "₹ 2,10,000",
-      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "gender": "Men",
+      "rating": 4.9,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 2,
       "name": "Prospex",
       "code": "SPB319",
       "price": "₹ 1,20,000",
-      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "gender": "Men",
+      "rating": 4.8,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 3,
       "name": "Presage",
       "code": "HCC002",
       "price": "₹ 63,000",
-      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "gender": "Unisex",
+      "rating": 4.5,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 4,
       "name": "Seiko 5 Sports",
       "code": "SSPL83",
       "price": "₹ 32,000",
-      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "gender": "Unisex",
+      "rating": 4.6,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 5,
       "name": "Astron",
       "code": "SSH175",
       "price": "₹ 1,85,000",
-      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "gender": "Men",
+      "rating": 4.8,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 6,
       "name": "Seiko Power Design Project",
       "code": "SSEH021",
       "price": "₹ 45,000",
-      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "gender": "Unisex",
+      "rating": 4.7,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     }
   ],
   "relatedProducts": [
@@ -163,63 +202,90 @@
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "collection": "HYDROCONQUEST",
       "description": "39 mm - Quartz watch - Stainless steel",
-      "price": "₹114,000.00"
+      "price": "₹114,000.00",
+      "gender": "Unisex",
+      "rating": 4.5,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 2,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
       "collection": "HYDROCONQUEST",
       "description": "44 mm - Quartz watch - Stainless steel",
-      "price": "₹120,000.00"
+      "price": "₹120,000.00",
+      "gender": "Men",
+      "rating": 4.6,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 3,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "collection": "HYDROCONQUEST",
       "description": "44 mm - Quartz watch - Stainless steel",
-      "price": "₹120,000.00"
+      "price": "₹120,000.00",
+      "gender": "Men",
+      "rating": 4.7,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 4,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
       "collection": "HYDROCONQUEST",
       "description": "41 mm - Quartz watch - Stainless steel and yellow PVD coating",
-      "price": "₹133,000.00"
+      "price": "₹133,000.00",
+      "gender": "Men",
+      "rating": 4.8,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 5,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "collection": "HYDROCONQUEST",
       "description": "41 mm - Quartz watch - Stainless steel and red PVD coating",
-      "price": "₹133,000.00"
+      "price": "₹133,000.00",
+      "gender": "Men",
+      "rating": 4.8,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 6,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
       "collection": "HYDROCONQUEST",
       "description": "39 mm - Automatic watch",
-      "price": "₹140,000.00"
+      "price": "₹140,000.00",
+      "gender": "Unisex",
+      "rating": 4.7,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
     },
     {
       "id": 7,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "collection": "HYDROCONQUEST",
       "description": "39 mm - Quartz watch - Stainless steel",
-      "price": "₹114,000.00"
+      "price": "₹114,000.00",
+      "gender": "Unisex",
+      "rating": 4.5,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 8,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "collection": "HYDROCONQUEST",
       "description": "39 mm - Quartz watch - Stainless steel",
-      "price": "₹114,000.00"
+      "price": "₹114,000.00",
+      "gender": "Unisex",
+      "rating": 4.4,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     },
     {
       "id": 9,
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "collection": "HYDROCONQUEST",
       "description": "39 mm - Quartz watch - Stainless steel",
-      "price": "₹114,000.00"
+      "price": "₹114,000.00",
+      "gender": "Unisex",
+      "rating": 4.6,
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
     }
   ]
 }

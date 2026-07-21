@@ -75,16 +75,27 @@ export default function Home() {
         if(el.tagName !== 'IMG') gsap.set(el, { opacity: 0, y: 20 });
     });
 
-    // Preloader Timeline
-    const tlPreload = gsap.timeline();
+    // Preloader Timeline Control
+    const hasSeenPreloader = typeof window !== 'undefined' ? sessionStorage.getItem('hasSeenPreloader') : 'false';
 
-    tlPreload.to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: 'power2.out' })
-      .to(preloaderLine, { scaleX: 1, duration: 1.2, ease: 'expo.inOut' }, "-=0.3")
-      .to('.preloader-text', { autoAlpha: 0, duration: 0.3 }, "-=0.2")
-      .to(preloaderLogo, { autoAlpha: 0, duration: 0.4, y: -20 }, "+=0.2")
-      .to(preloaderLine, { autoAlpha: 0, duration: 0.3 }, "-=0.3")
-      .to(preloader, { yPercent: -100, duration: 0.8, ease: 'power3.inOut' })
-      .call(initPageAnimations);
+    if (hasSeenPreloader === 'true') {
+      gsap.set(preloader, { yPercent: -100, autoAlpha: 0, display: 'none' });
+      initPageAnimations();
+    } else {
+      const tlPreload = gsap.timeline();
+      tlPreload.to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: 'power2.out' })
+        .to(preloaderLine, { scaleX: 1, duration: 1.2, ease: 'expo.inOut' }, "-=0.3")
+        .to('.preloader-text', { autoAlpha: 0, duration: 0.3 }, "-=0.2")
+        .to(preloaderLogo, { autoAlpha: 0, duration: 0.4, y: -20 }, "+=0.2")
+        .to(preloaderLine, { autoAlpha: 0, duration: 0.3 }, "-=0.3")
+        .to(preloader, { yPercent: -100, duration: 0.8, ease: 'power3.inOut' })
+        .call(() => {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('hasSeenPreloader', 'true');
+          }
+          initPageAnimations();
+        });
+    }
 
     function initPageAnimations() {
       const tlLoad = gsap.timeline();
@@ -120,14 +131,6 @@ export default function Home() {
             lenis.scrollTo(0, { duration: 1.2, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
           });
       }
-
-      // Navbar Effects
-      ScrollTrigger.create({
-        start: 'top -50',
-        end: 99999,
-        toggleClass: {className: 'scrolled', targets: 'header'}
-      });
-
       // Hero Parallax
       gsap.to('.hero .swirl', {
         yPercent: 30,

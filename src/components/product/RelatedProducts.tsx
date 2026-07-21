@@ -155,16 +155,35 @@ export default function RelatedProducts() {
               className="w-[280px] shrink-0 text-left cursor-pointer group"
             >
               {/* Product Image Container */}
-              <div className="relative aspect-square w-full bg-gray-50 mb-4 overflow-hidden flex items-center justify-center p-6">
-                <Image
-                  src={product.image || ''}
-                  alt={product.collection || 'Related Product'}
-                  width={240}
-                  height={240}
-                  className="object-contain transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 280px"
-                  priority={product.id <= 3}
-                />
+              <div className="relative aspect-square w-full bg-gray-50 mb-4 overflow-hidden">
+                {product.hoverImage ? (
+                  <>
+                    <Image
+                      src={product.image || ''}
+                      alt={product.collection || 'Related Product'}
+                      fill
+                      className="object-contain transition-opacity duration-500 group-hover:opacity-0"
+                      sizes="(max-width: 768px) 100vw, 280px"
+                      priority={product.id <= 3}
+                    />
+                    <Image
+                      src={product.hoverImage}
+                      alt={`${product.collection || 'Related Product'} hover`}
+                      fill
+                      className="object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                      sizes="(max-width: 768px) 100vw, 280px"
+                    />
+                  </>
+                ) : (
+                  <Image
+                    src={product.image || ''}
+                    alt={product.collection || 'Related Product'}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 280px"
+                    priority={product.id <= 3}
+                  />
+                )}
               </div>
               
               {/* Product Metadata */}

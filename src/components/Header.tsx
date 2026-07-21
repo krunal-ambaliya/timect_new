@@ -1,30 +1,57 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+
 export default function Header() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    // Call handler once on mount to capture initial scroll position
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
-    <header className="border-b border-[var(--line)]">
+    <header className={`border-b border-[var(--line)] ${scrolled ? 'scrolled' : ''}`}>
       <div className="max-w-[1400px] mx-auto flex items-center justify-between px-8 py-5">
-        <div className="flex items-center">
+        <Link href="/" className="flex items-center cursor-pointer">
           <img
             src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048492/timect/timect_logo.png"
             alt="Timect Logo"
             className="h-12 w-12 object-contain"
           />
-        </div>
+        </Link>
         <nav className="hidden md:flex gap-10 text-[12px] tracked-sm">
-          <a href="#" className="nav-link">
+          <Link href="/watches" className="nav-link">
             Collections
-          </a>
-          <a href="#" className="nav-link">
+          </Link>
+          <Link href="/watches?category=new" className="nav-link">
             New Arrivals
-          </a>
-          <a href="#" className="nav-link">
+          </Link>
+          <Link href="/watches?category=recommended" className="nav-link">
             Best Sellers
-          </a>
-          <a href="#" className="nav-link">
+          </Link>
+          <Link href="/watches?category=related" className="nav-link">
             Technology
-          </a>
+          </Link>
         </nav>
         
       </div>
     </header>
   );
 }
+
