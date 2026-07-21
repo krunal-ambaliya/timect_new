@@ -311,7 +311,7 @@ function WatchesCatalogContent() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {products.map((product) => {
                   const displayBrand =
                     product.brand || product.collection || "Seiko";
@@ -379,12 +379,12 @@ function WatchesCatalogContent() {
                       {/* Product Metadata */}
                       <div className="flex-grow flex flex-col space-y-1 px-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                          <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase truncate max-w-[70%]">
                             {displayBrand}
                           </span>
 
                           {/* Stars Rating */}
-                          <div className="flex items-center gap-1 text-amber-500">
+                          <div className="flex items-center gap-1 text-amber-500 shrink-0">
                             <LucideStar className="h-3 w-3 fill-amber-500" />
                             <span className="text-[10px] font-bold text-gray-600">
                               {product.rating || "4.5"}
@@ -410,13 +410,13 @@ function WatchesCatalogContent() {
                           </span>
                         )}
 
-                        <div className="flex items-center justify-between pt-4 mt-auto">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 mt-auto">
                           <span className="text-sm font-extrabold text-black">
                             {product.price}
                           </span>
 
                           {/* Styled Button (Shopping Bag icon style) */}
-                          <button className="bg-black hover:bg-neutral-800 text-white rounded-lg px-3 py-2 text-[10px] font-extrabold tracking-wider transition-all duration-300">
+                          <button className="bg-black hover:bg-neutral-800 text-white rounded-lg px-3 py-2.5 text-[10px] font-extrabold tracking-wider transition-all duration-300 w-full sm:w-auto text-center cursor-pointer">
                             VIEW DETAILS
                           </button>
                         </div>
@@ -432,127 +432,138 @@ function WatchesCatalogContent() {
 
       {/* Mobile Sidebar Modal overlay */}
       {mobileSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
-          <div className="w-[300px] bg-white h-full p-6 flex flex-col overflow-y-auto animate-slide-in">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-150 mb-6">
+        <div 
+          onClick={() => setMobileSidebarOpen(false)} 
+          className="fixed inset-0 bg-black/50 z-[9999] flex justify-end"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="w-[300px] bg-white h-full p-6 flex flex-col animate-slide-in"
+          >
+            {/* Header (Sticky / Non-scrollable) */}
+            <div className="flex items-center justify-between pb-4 border-b border-gray-150 mb-6 shrink-0">
               <h3 className="text-sm font-bold tracking-wider uppercase text-gray-900">
                 Filters
               </h3>
               <button
                 onClick={() => setMobileSidebarOpen(false)}
-                className="text-xs text-gray-500 hover:text-black font-bold uppercase"
+                className="text-xs text-gray-500 hover:text-black font-bold uppercase cursor-pointer"
               >
                 Close
               </button>
             </div>
 
-            {/* Search filter */}
-            <div className="mb-6">
-              <label className="block text-xs font-bold tracking-wider uppercase text-gray-700 mb-2">
-                Search
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search watches..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:bg-white focus:border-black focus:outline-none transition-all"
-                />
-                <LucideSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Price Range Slider */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold tracking-wider uppercase text-gray-700">
-                  Max Price
+            {/* Scrollable Filters Content */}
+            <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-6 mb-6">
+              {/* Search filter */}
+              <div>
+                <label className="block text-xs font-bold tracking-wider uppercase text-gray-700 mb-2">
+                  Search
                 </label>
-                <span className="text-xs font-bold text-gray-900">
-                  {formatPrice(priceRange[1])}
-                </span>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search watches..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:bg-white focus:border-black focus:outline-none transition-all"
+                  />
+                  <LucideSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                </div>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="250000"
-                step="5000"
-                value={priceRange[1]}
-                onChange={(e) =>
-                  setPriceRange([priceRange[0], parseInt(e.target.value, 10)])
-                }
-                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black mb-1"
-              />
-              <div className="flex justify-between text-[10px] text-gray-400 font-semibold">
-                <span>{formatPrice(0)}</span>
-                <span>{formatPrice(250000)}</span>
-              </div>
-            </div>
 
-            {/* Gender filter */}
-            <div className="mb-6 border-t border-gray-100 pt-4">
-              <h4 className="text-xs font-bold tracking-wider uppercase text-gray-700 mb-3">
-                Gender
-              </h4>
-              <div className="space-y-2">
-                {["Men", "Women", "Unisex"].map((gender) => (
-                  <label
-                    key={gender}
-                    className="flex items-center gap-3 text-xs text-gray-600 font-medium cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedGenders.includes(gender)}
-                      onChange={() => handleGenderChange(gender)}
-                      className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer accent-black"
-                    />
-                    {gender}
+              {/* Price Range Slider */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold tracking-wider uppercase text-gray-700">
+                    Max Price
                   </label>
-                ))}
+                  <span className="text-xs font-bold text-gray-900">
+                    {formatPrice(priceRange[1])}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="250000"
+                  step="5000"
+                  value={priceRange[1]}
+                  onChange={(e) =>
+                    setPriceRange([priceRange[0], parseInt(e.target.value, 10)])
+                  }
+                  className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black mb-1"
+                />
+                <div className="flex justify-between text-[10px] text-gray-400 font-semibold">
+                  <span>{formatPrice(0)}</span>
+                  <span>{formatPrice(250000)}</span>
+                </div>
+              </div>
+
+              {/* Gender filter */}
+              <div className="border-t border-gray-100 pt-4">
+                <h4 className="text-xs font-bold tracking-wider uppercase text-gray-700 mb-3">
+                  Gender
+                </h4>
+                <div className="space-y-2">
+                  {["Men", "Women", "Unisex"].map((gender) => (
+                    <label
+                      key={gender}
+                      className="flex items-center gap-3 text-xs text-gray-600 font-medium cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGenders.includes(gender)}
+                        onChange={() => handleGenderChange(gender)}
+                        className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer accent-black"
+                      />
+                      {gender}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Brand filter */}
+              <div className="border-t border-gray-100 pt-4">
+                <h4 className="text-xs font-bold tracking-wider uppercase text-gray-700 mb-3">
+                  Brand / Collection
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    "Exclusive",
+                    "Presage",
+                    "Prospex",
+                    "Astron",
+                    "HYDROCONQUEST",
+                    "Seiko",
+                  ].map((brand) => (
+                    <label
+                      key={brand}
+                      className="flex items-center gap-3 text-xs text-gray-600 font-medium cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedBrands.includes(brand)}
+                        onChange={() => handleBrandChange(brand)}
+                        className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer accent-black"
+                      />
+                      {brand}
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Brand filter */}
-            <div className="mb-8 border-t border-gray-100 pt-4">
-              <h4 className="text-xs font-bold tracking-wider uppercase text-gray-700 mb-3">
-                Brand / Collection
-              </h4>
-              <div className="space-y-2">
-                {[
-                  "Exclusive",
-                  "Presage",
-                  "Prospex",
-                  "Astron",
-                  "HYDROCONQUEST",
-                  "Seiko",
-                ].map((brand) => (
-                  <label
-                    key={brand}
-                    className="flex items-center gap-3 text-xs text-gray-600 font-medium cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedBrands.includes(brand)}
-                      onChange={() => handleBrandChange(brand)}
-                      className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer accent-black"
-                    />
-                    {brand}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-auto pt-4 flex gap-4">
+            {/* Bottom Buttons (Non-scrollable) */}
+            <div className="mt-auto pt-4 flex gap-4 border-t border-gray-100 shrink-0">
               <button
                 onClick={handleResetFilters}
-                className="flex-1 bg-white border border-gray-200 text-black py-3 rounded-xl text-xs font-bold tracking-widest uppercase hover:border-black transition"
+                className="flex-1 bg-white border border-gray-200 text-black py-3 rounded-xl text-xs font-bold tracking-widest uppercase hover:border-black transition cursor-pointer"
               >
                 Reset
               </button>
               <button
                 onClick={handleApplyFilters}
-                className="flex-1 bg-black text-white py-3 rounded-xl text-xs font-bold tracking-widest uppercase hover:bg-neutral-800 transition"
+                className="flex-1 bg-black text-white py-3 rounded-xl text-xs font-bold tracking-widest uppercase hover:bg-neutral-800 transition cursor-pointer"
               >
                 Apply
               </button>

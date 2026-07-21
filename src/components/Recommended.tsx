@@ -17,7 +17,7 @@ export default function Recommended() {
   }, []);
 
   return (
-    <section className="grid md:grid-cols-2 gap-0 mb-16">
+    <section className="grid md:grid-cols-3 gap-0 mb-16">
       <div
         className="watch-wrap relative"
         style={{
@@ -72,7 +72,10 @@ export default function Recommended() {
                   />
                 )}
               </div>
-              <div className="mt-2 prod-name truncate" title={product.name || ""}>
+              <div
+                className="mt-2 prod-name truncate"
+                title={product.name || ""}
+              >
                 {product.name || ""}
               </div>
               <div className="prod-code">{product.code || ""}</div>

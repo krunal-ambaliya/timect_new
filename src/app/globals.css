@@ -24,16 +24,7 @@ body {
   background-color: #ffffff;
 }
 
-@media (min-width: 768px) {
-  body {
-    cursor: none;
-  }
-  a,
-  button,
-  .cursor-pointer {
-    cursor: none;
-  }
-}
+
 
 .serif {
   font-family: var(--font-cormorant), serif;

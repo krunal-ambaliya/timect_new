@@ -144,7 +144,7 @@ export default function NewArrivals() {
           ref={scrollRef}
           onMouseDown={handleMouseDown}
           onScroll={updateScrollIndicator}
-          className={`flex gap-8 overflow-x-auto pb-6 px-2 no-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`flex gap-4 md:gap-8 overflow-x-auto pb-6 px-2 no-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
           style={{
             scrollBehavior:
               isDragging || isDraggingScrollbar ? "auto" : "smooth",
@@ -158,7 +158,7 @@ export default function NewArrivals() {
                   router.push(`/product/${product.slug}`);
                 }
               }}
-              className="text-center w-[280px] flex-shrink-0 group/card cursor-pointer"
+              className="text-center w-[calc(50vw-24px)] md:w-[280px] flex-shrink-0 group/card cursor-pointer"
             >
               <div className="watch-wrap relative transition mb-6 bg-white overflow-hidden">
                 {product.tag && (
