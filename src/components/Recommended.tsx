@@ -5,19 +5,23 @@ import Button from "@/components/Button";
 import { getRecommended, Product } from "@/db/actions";
 import { useRouter } from "next/navigation";
 
-export default function Recommended() {
+export default function Recommended({ products: initialProducts }: { products?: Product[] }) {
   const router = useRouter();
   const defaultImage =
     "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048484/timect/right-main.png";
   const [mainImage, setMainImage] = useState(defaultImage);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(initialProducts || []);
 
   useEffect(() => {
-    getRecommended().then(setProducts);
-  }, []);
+    if (initialProducts) {
+      setProducts(initialProducts);
+    } else {
+      getRecommended().then(setProducts);
+    }
+  }, [initialProducts]);
 
   return (
-    <section className="grid md:grid-cols-3 gap-0 mb-16">
+    <section className="grid md:grid-cols-2 gap-0 mb-16">
       <div
         className="watch-wrap relative"
         style={{

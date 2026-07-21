@@ -5,13 +5,17 @@ import Button from "@/components/Button";
 import { getNewArrivals, Product } from "@/db/actions";
 import { useRouter } from "next/navigation";
 
-export default function NewArrivals() {
+export default function NewArrivals({ products: initialProducts }: { products?: Product[] }) {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(initialProducts || []);
 
   useEffect(() => {
-    getNewArrivals().then(setProducts);
-  }, []);
+    if (initialProducts) {
+      setProducts(initialProducts);
+    } else {
+      getNewArrivals().then(setProducts);
+    }
+  }, [initialProducts]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollbarRef = useRef<HTMLDivElement>(null);
@@ -129,7 +133,7 @@ export default function NewArrivals() {
   };
 
   return (
-    <section className="max-w-[1400px] mx-auto px-8 py-16">
+    <section className="max-w-[1400px] mx-auto px-4 md:px-8 py-16">
       <div className="flex justify-center gap-12 mb-12">
         <button className="text-[14px] tracking-widest border-b-2 border-black pb-2 font-medium">
           NEW ARRIVALS
@@ -144,7 +148,7 @@ export default function NewArrivals() {
           ref={scrollRef}
           onMouseDown={handleMouseDown}
           onScroll={updateScrollIndicator}
-          className={`flex gap-4 md:gap-8 overflow-x-auto pb-6 px-2 no-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`flex gap-4 md:gap-8 overflow-x-auto pb-6 px-2 no-scrollbar select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"} ${!isDragging && !isDraggingScrollbar ? "snap-x snap-mandatory" : ""}`}
           style={{
             scrollBehavior:
               isDragging || isDraggingScrollbar ? "auto" : "smooth",
@@ -158,11 +162,11 @@ export default function NewArrivals() {
                   router.push(`/product/${product.slug}`);
                 }
               }}
-              className="text-center w-[calc(50vw-24px)] md:w-[280px] flex-shrink-0 group/card cursor-pointer"
+              className="text-center w-[calc((100vw-48px)/2)] sm:w-[240px] md:w-[280px] flex-shrink-0 group/card cursor-pointer snap-start"
             >
-              <div className="watch-wrap relative transition mb-6 bg-white overflow-hidden">
+              <div className="watch-wrap relative transition mb-4 md:mb-6 bg-white overflow-hidden">
                 {product.tag && (
-                  <span className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10">
+                  <span className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10 whitespace-nowrap">
                     {product.tag}
                   </span>
                 )}
@@ -187,13 +191,13 @@ export default function NewArrivals() {
                   />
                 )}
                 {product.emi && (
-                  <span className="absolute bottom-0 right-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10">
+                  <span className="absolute bottom-0 right-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10 whitespace-nowrap">
                     {product.emi}
                   </span>
                 )}
               </div>
               <div className="space-y-2 px-2 pointer-events-none">
-                <div className="text-[13px] text-gray-800 leading-snug line-clamp-2 min-h-[2.5rem]">
+                <div className="text-[13px] text-gray-800 leading-5 line-clamp-2 h-10 overflow-hidden">
                   {product.name || ""}
                 </div>
                 <div className="text-[13px] text-gray-900">{product.price}</div>

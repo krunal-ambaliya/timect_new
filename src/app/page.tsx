@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Lenis from "@studio-freight/lenis";
-
+import { getNewArrivals, getRecommended, Product } from "@/db/actions";
 
 import Preloader from "@/components/Preloader";
 import TopStrip from "@/components/TopStrip";
@@ -25,6 +25,31 @@ if (typeof window !== "undefined") {
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [recommended, setRecommended] = useState<Product[]>([]);
+
+  const productsLoadedRef = useRef(false);
+  const introFinishedRef = useRef(false);
+  const triggerExitRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    productsLoadedRef.current = productsLoaded;
+    triggerExitRef.current();
+  }, [productsLoaded]);
+
+  useEffect(() => {
+    Promise.all([getNewArrivals(), getRecommended()])
+      .then(([arrivals, recs]) => {
+        setNewArrivals(arrivals);
+        setRecommended(recs);
+        setProductsLoaded(true);
+      })
+      .catch((err) => {
+        console.error("Error loading products:", err);
+        setProductsLoaded(true); // fallback to let user see site anyway
+      });
+  }, []);
   
   useGSAP(() => {
     // Lenis setup
@@ -82,19 +107,37 @@ export default function Home() {
       gsap.set(preloader, { yPercent: -100, autoAlpha: 0, display: 'none' });
       initPageAnimations();
     } else {
-      const tlPreload = gsap.timeline();
+      const checkAndExit = () => {
+        if (introFinishedRef.current && productsLoadedRef.current) {
+          playExitAnimation();
+        }
+      };
+
+      triggerExitRef.current = checkAndExit;
+
+      const tlPreload = gsap.timeline({
+        onComplete: () => {
+          introFinishedRef.current = true;
+          checkAndExit();
+        }
+      });
+
       tlPreload.to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: 'power2.out' })
-        .to(preloaderLine, { scaleX: 1, duration: 1.2, ease: 'expo.inOut' }, "-=0.3")
-        .to('.preloader-text', { autoAlpha: 0, duration: 0.3 }, "-=0.2")
-        .to(preloaderLogo, { autoAlpha: 0, duration: 0.4, y: -20 }, "+=0.2")
-        .to(preloaderLine, { autoAlpha: 0, duration: 0.3 }, "-=0.3")
-        .to(preloader, { yPercent: -100, duration: 0.8, ease: 'power3.inOut' })
-        .call(() => {
-          if (typeof window !== 'undefined') {
-            sessionStorage.setItem('hasSeenPreloader', 'true');
-          }
-          initPageAnimations();
-        });
+        .to(preloaderLine, { scaleX: 1, duration: 1.2, ease: 'expo.inOut' }, "-=0.3");
+
+      function playExitAnimation() {
+        const tlExit = gsap.timeline();
+        tlExit.to('.preloader-text', { autoAlpha: 0, duration: 0.3 })
+          .to(preloaderLogo, { autoAlpha: 0, duration: 0.4, y: -20 }, "-=0.2")
+          .to(preloaderLine, { autoAlpha: 0, duration: 0.3 }, "-=0.3")
+          .to(preloader, { yPercent: -100, duration: 0.8, ease: 'power3.inOut' })
+          .call(() => {
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('hasSeenPreloader', 'true');
+            }
+            initPageAnimations();
+          });
+      }
     }
 
     function initPageAnimations() {
@@ -226,8 +269,8 @@ export default function Home() {
       <TopStrip />
       <Header />
       <Hero />
-      <NewArrivals />
-      <Recommended />
+      <NewArrivals products={newArrivals} />
+      <Recommended products={recommended} />
       <ShopByCategory />
       <CollectionBanners />
       <ForHimHer />

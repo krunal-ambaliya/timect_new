@@ -139,9 +139,9 @@ export default function RelatedProducts() {
           ref={scrollRef}
           onMouseDown={handleMouseDown}
           onScroll={updateScrollIndicator}
-          className={`flex gap-6 overflow-x-auto pb-8 no-scrollbar select-none ${
+          className={`flex gap-4 md:gap-8 overflow-x-auto pb-8 no-scrollbar select-none ${
             isDragging ? 'cursor-grabbing' : 'cursor-grab'
-          }`}
+          } ${(!isDragging && !isDraggingScrollbar) ? 'snap-x snap-mandatory' : ''}`}
           style={{ scrollBehavior: (isDragging || isDraggingScrollbar) ? 'auto' : 'smooth' }}
         >
           {relatedProducts.map((product) => (
@@ -152,7 +152,7 @@ export default function RelatedProducts() {
                   router.push(`/product/${product.slug}`);
                 }
               }}
-              className="w-[280px] shrink-0 text-left cursor-pointer group"
+              className="w-[calc((100vw-48px)/2)] sm:w-[240px] md:w-[280px] shrink-0 text-left cursor-pointer group snap-start"
             >
               {/* Product Image Container */}
               <div className="relative aspect-square w-full bg-gray-50 mb-4 overflow-hidden">
@@ -191,7 +191,7 @@ export default function RelatedProducts() {
                 <h3 className="text-xs font-bold tracking-widest text-[#0a1e36] uppercase">
                   {product.collection || ''}
                 </h3>
-                <p className="text-xs text-gray-500 leading-relaxed font-light min-h-[32px] line-clamp-2">
+                <p className="text-xs text-gray-500 leading-4 font-light h-8 line-clamp-2 overflow-hidden">
                   {product.description || ''}
                 </p>
                 <p className="text-sm font-semibold text-gray-900 mt-1">
