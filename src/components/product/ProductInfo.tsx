@@ -142,10 +142,7 @@ export default function ProductInfo({
                 />
               </button>
             ))}
-            {/* Show more variations placeholder */}
-            <button className="w-14 h-16 border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
-              <span className="text-xl leading-none font-light">+</span>
-            </button>
+            
           </div>
         </div>
       )}

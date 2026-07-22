@@ -10,7 +10,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Product / media Server Actions need more than the default 1MB body limit.
+  // In Next.js 16 this option lives under experimental.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
 };
 
 export default nextConfig;
-
