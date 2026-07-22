@@ -4,76 +4,187 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import TopStrip from "@/components/TopStrip";
+
 import { getFilteredProducts, Product } from "@/db/actions";
 import {
-  LucideHeart,
+  getCatalogFilterLabel,
+  SHOP_BY_CATEGORY,
+} from "@/data/categoryFilters";
+import {
   LucideSearch,
   LucideSlidersHorizontal,
   LucideStar,
+  LucideX,
 } from "lucide-react";
+
+const DEFAULT_PRICE_MAX = 250000;
 
 function WatchesCatalogContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // URL-driven initial category
+  // URL-driven initial category / specification filter
   const urlCategory = searchParams.get("category") || "all";
+  const urlFilter = searchParams.get("filter") || "";
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 250000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    0,
+    DEFAULT_PRICE_MAX,
+  ]);
   const [activeCategory, setActiveCategory] = useState<string>(urlCategory);
+  const [activeFilter, setActiveFilter] = useState<string>(urlFilter);
   const [sortBy, setSortBy] = useState<string>("newest");
 
-  // Trigger state for fetching data
-  const [triggerFetch, setTriggerFetch] = useState(0);
+  // Debounced filters for API requests
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [debouncedPriceRange, setDebouncedPriceRange] = useState<
+    [number, number]
+  >([0, DEFAULT_PRICE_MAX]);
+
+  // Pagination & Results status state
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Mobile sidebar visibility
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Synchronize category with URL changes
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Debounce price range
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedPriceRange(priceRange);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [priceRange]);
+
+  // Synchronize category + specification filter with URL changes
   useEffect(() => {
     const category = searchParams.get("category") || "all";
+    const filter = searchParams.get("filter") || "";
     setActiveCategory(category);
-    setTriggerFetch((prev) => prev + 1);
+    setActiveFilter(filter);
   }, [searchParams]);
+
+  // Reset page to 1 whenever any filter parameter changes
+  useEffect(() => {
+    setPage(1);
+  }, [
+    debouncedSearchQuery,
+    selectedGenders,
+    selectedBrands,
+    debouncedPriceRange,
+    activeCategory,
+    activeFilter,
+    sortBy,
+  ]);
 
   // Fetch products
   useEffect(() => {
-    setLoading(true);
+    let isMounted = true;
+    if (page === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     getFilteredProducts({
-      search: searchQuery,
+      search: debouncedSearchQuery,
       genders: selectedGenders,
       brands: selectedBrands,
-      priceMin: priceRange[0],
-      priceMax: priceRange[1],
+      priceMin: debouncedPriceRange[0],
+      priceMax: debouncedPriceRange[1],
       category: activeCategory,
+      filter: activeFilter || undefined,
       sortBy: sortBy,
+      page: page,
+      pageSize: 20,
     }).then((data) => {
-      setProducts(data);
+      if (!isMounted) return;
+      if (page === 1) {
+        setProducts(data.products);
+      } else {
+        setProducts((prev) => [...prev, ...data.products]);
+      }
+      setTotalCount(data.total);
+      setHasMore(data.hasMore);
       setLoading(false);
+      setLoadingMore(false);
     });
-  }, [triggerFetch, activeCategory, sortBy]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    debouncedSearchQuery,
+    selectedGenders,
+    selectedBrands,
+    debouncedPriceRange,
+    activeCategory,
+    activeFilter,
+    sortBy,
+    page,
+  ]);
 
   const handleApplyFilters = () => {
     setMobileSidebarOpen(false);
-    setTriggerFetch((prev) => prev + 1);
+  };
+
+  const buildWatchesUrl = (opts: {
+    category?: string;
+    filter?: string | null;
+  }) => {
+    const params = new URLSearchParams();
+    const category = opts.category ?? activeCategory;
+    const filter =
+      opts.filter === null ? "" : (opts.filter ?? activeFilter);
+    if (category && category !== "all") params.set("category", category);
+    if (filter) params.set("filter", filter);
+    const qs = params.toString();
+    return qs ? `/watches?${qs}` : "/watches";
   };
 
   const handleResetFilters = () => {
     setSearchQuery("");
     setSelectedGenders([]);
     setSelectedBrands([]);
-    setPriceRange([0, 250000]);
-    setTriggerFetch((prev) => prev + 1);
+    setPriceRange([0, DEFAULT_PRICE_MAX]);
+    setActiveFilter("");
+    setActiveCategory("all");
+    router.push("/watches", { scroll: false });
   };
+
+  const clearCatalogFilter = () => {
+    setActiveFilter("");
+    router.push(buildWatchesUrl({ filter: null }), { scroll: false });
+  };
+
+  const setCatalogFilter = (slug: string) => {
+    const next = activeFilter === slug ? "" : slug;
+    setActiveFilter(next);
+    router.push(
+      buildWatchesUrl({ filter: next || null }),
+      { scroll: false },
+    );
+  };
+
+  const filterLabel = getCatalogFilterLabel(activeFilter);
 
   const handleGenderChange = (gender: string) => {
     setSelectedGenders((prev) =>
@@ -88,6 +199,18 @@ function WatchesCatalogContent() {
       prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand],
     );
   };
+
+  const removeGender = (gender: string) => {
+    setSelectedGenders((prev) => prev.filter((g) => g !== gender));
+  };
+
+  const removeBrand = (brand: string) => {
+    setSelectedBrands((prev) => prev.filter((b) => b !== brand));
+  };
+
+  const clearSearch = () => setSearchQuery("");
+
+  const clearPrice = () => setPriceRange([0, DEFAULT_PRICE_MAX]);
 
   // Quick categories pills
   const categoriesList = [
@@ -106,9 +229,51 @@ function WatchesCatalogContent() {
     }).format(priceVal);
   };
 
+  type ActiveChip = {
+    id: string;
+    label: string;
+    onRemove: () => void;
+  };
+
+  const activeChips: ActiveChip[] = [];
+  if (filterLabel && activeFilter) {
+    activeChips.push({
+      id: `filter-${activeFilter}`,
+      label: filterLabel,
+      onRemove: clearCatalogFilter,
+    });
+  }
+  if (debouncedSearchQuery.trim()) {
+    activeChips.push({
+      id: `search-${debouncedSearchQuery}`,
+      label: `Search: ${debouncedSearchQuery.trim()}`,
+      onRemove: clearSearch,
+    });
+  }
+  if (priceRange[1] < DEFAULT_PRICE_MAX) {
+    activeChips.push({
+      id: "price-max",
+      label: `Max ${formatPrice(priceRange[1])}`,
+      onRemove: clearPrice,
+    });
+  }
+  for (const gender of selectedGenders) {
+    activeChips.push({
+      id: `gender-${gender}`,
+      label: gender,
+      onRemove: () => removeGender(gender),
+    });
+  }
+  for (const brand of selectedBrands) {
+    activeChips.push({
+      id: `brand-${brand}`,
+      label: brand,
+      onRemove: () => removeBrand(brand),
+    });
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-[#111111]">
-      <TopStrip />
       <Header />
 
       <main className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -120,8 +285,11 @@ function WatchesCatalogContent() {
                 key={cat.id}
                 onClick={() => {
                   setActiveCategory(cat.id);
-                  // Update URL query param silently
-                  router.push(`/watches?category=${cat.id}`, { scroll: false });
+                  setActiveFilter("");
+                  router.push(
+                    buildWatchesUrl({ category: cat.id, filter: null }),
+                    { scroll: false },
+                  );
                 }}
                 className={`px-5 py-2.5 rounded-full text-xs font-semibold tracking-wider transition-all duration-300 ${
                   activeCategory === cat.id
@@ -205,7 +373,7 @@ function WatchesCatalogContent() {
               <input
                 type="range"
                 min="0"
-                max="250000"
+                max={DEFAULT_PRICE_MAX}
                 step="5000"
                 value={priceRange[1]}
                 onChange={(e) =>
@@ -215,8 +383,8 @@ function WatchesCatalogContent() {
               />
               <div className="flex justify-between text-[10px] text-gray-400 font-semibold">
                 <span>{formatPrice(0)}</span>
-                <span>{formatPrice(125000)}</span>
-                <span>{formatPrice(250000)}</span>
+                <span>{formatPrice(DEFAULT_PRICE_MAX / 2)}</span>
+                <span>{formatPrice(DEFAULT_PRICE_MAX)}</span>
               </div>
             </div>
 
@@ -240,6 +408,34 @@ function WatchesCatalogContent() {
                     {gender}
                   </label>
                 ))}
+              </div>
+            </div>
+
+            {/* Collection filters (Shop by Category) */}
+            <div className="mb-6 border-t border-gray-100 pt-4">
+              <h4 className="text-xs font-bold tracking-wider uppercase text-gray-700 mb-3">
+                Collection
+              </h4>
+              <div className="space-y-2">
+                {SHOP_BY_CATEGORY.map((item) => {
+                  const selected = activeFilter === item.slug;
+                  return (
+                    <label
+                      key={item.slug}
+                      className="flex items-center gap-3 text-xs text-gray-600 font-medium cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => setCatalogFilter(item.slug)}
+                        className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer accent-black"
+                      />
+                      <span className={selected ? "text-black font-semibold" : ""}>
+                        {item.label}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -272,26 +468,43 @@ function WatchesCatalogContent() {
                 ))}
               </div>
             </div>
-
-            <button
-              onClick={handleApplyFilters}
-              className="w-full bg-black text-white py-3 rounded-xl text-xs font-bold tracking-widest uppercase hover:bg-neutral-800 transition duration-300 shadow-sm"
-            >
-              Apply Filters
-            </button>
           </aside>
 
           {/* Catalog Grid */}
           <div className="lg:col-span-3">
             {/* Active filters status / Results count */}
-            <div className="flex items-center justify-between mb-6 px-1">
+            <div className="flex flex-col gap-3 mb-6 px-1">
               <p className="text-xs text-gray-500 font-medium">
                 Showing{" "}
                 <span className="font-bold text-gray-900">
                   {products.length}
                 </span>{" "}
+                of{" "}
+                <span className="font-bold text-gray-900">{totalCount}</span>{" "}
                 luxury watches
               </p>
+              {activeChips.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {activeChips.map((chip) => (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={chip.onRemove}
+                      className="inline-flex items-center gap-1.5 bg-black text-white text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full hover:bg-neutral-800 transition"
+                    >
+                      {chip.label}
+                      <LucideX className="h-3 w-3" />
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="text-[10px] font-bold tracking-wider uppercase text-gray-500 hover:text-black underline underline-offset-2"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
             </div>
 
             {loading ? (
@@ -311,120 +524,130 @@ function WatchesCatalogContent() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {products.map((product) => {
-                  const displayBrand =
-                    product.brand || product.collection || "Seiko";
-                  const displayName =
-                    product.name || product.title || "Exclusive Watch";
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {products.map((product) => {
+                    const displayBrand =
+                      product.brand || product.collection || "Seiko";
+                    const displayName =
+                      product.name || product.title || "Exclusive Watch";
 
-                  return (
-                    <div
-                      key={product.id}
-                      onClick={() => router.push(`/product/${product.slug}`)}
-                      className="group bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col p-4 cursor-pointer hover:shadow-xl transition-all duration-500 hover:-translate-y-2 min-w-0"
-                    >
-                      {/* Product Image block (light gray backdrop) */}
-                      <div className="relative aspect-square w-full bg-slate-50 rounded-xl mb-4 overflow-hidden">
-                        {/* Top tag (e.g. New / Offer) */}
-                        {product.tag && (
-                          <span className="absolute top-3 left-3 bg-black text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
-                            {product.tag}
-                          </span>
-                        )}
-                        {product.isMainProduct && (
-                          <span className="absolute top-3 left-3 bg-[#0c2c42] text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
-                            EXCLUSIVE
-                          </span>
-                        )}
+                    return (
+                      <div
+                        key={product.id}
+                        onClick={() => router.push(`/product/${product.slug}`)}
+                        className="group bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col p-4 cursor-pointer hover:shadow-xl transition-all duration-500 hover:-translate-y-2 min-w-0"
+                      >
+                        {/* Product Image block (light gray backdrop) */}
+                        <div className="relative aspect-square w-full bg-slate-50 rounded-xl mb-4 overflow-hidden">
+                          {/* Top tag (e.g. New / Offer) */}
+                          {product.tag && (
+                            <span className="absolute top-3 left-3 bg-black text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
+                              {product.tag}
+                            </span>
+                          )}
+                          {product.isMainProduct && (
+                            <span className="absolute top-3 left-3 bg-[#0c2c42] text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
+                              EXCLUSIVE
+                            </span>
+                          )}
 
-                        {/* Favorite button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          className="absolute top-3 right-3 h-8 w-8 bg-white border border-gray-150 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 text-gray-400 transition z-10 shadow-sm"
-                        >
-                          <LucideHeart className="h-4 w-4" />
-                        </button>
-
-                        {product.hoverImage ? (
-                          <>
+                          {product.hoverImage ? (
+                            <>
+                              <img
+                                src={
+                                  product.image ||
+                                  "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+                                }
+                                alt={displayName}
+                                className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 group-hover:opacity-0 pointer-events-none"
+                              />
+                              <img
+                                src={product.hoverImage}
+                                alt={`${displayName} hover`}
+                                className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
+                              />
+                            </>
+                          ) : (
                             <img
                               src={
                                 product.image ||
                                 "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
                               }
                               alt={displayName}
-                              className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 group-hover:opacity-0 pointer-events-none"
+                              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                             />
-                            <img
-                              src={product.hoverImage}
-                              alt={`${displayName} hover`}
-                              className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
-                            />
-                          </>
-                        ) : (
-                          <img
-                            src={
-                              product.image ||
-                              "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
-                            }
-                            alt={displayName}
-                            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                          />
-                        )}
-                      </div>
+                          )}
+                        </div>
 
-                      {/* Product Metadata */}
-                      <div className="flex-grow flex flex-col space-y-1 px-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase truncate max-w-[70%]">
-                            {displayBrand}
-                          </span>
-
-                          {/* Stars Rating */}
-                          <div className="flex items-center gap-1 text-amber-500 shrink-0">
-                            <LucideStar className="h-3 w-3 fill-amber-500" />
-                            <span className="text-[10px] font-bold text-gray-600">
-                              {product.rating || "4.5"}
+                        {/* Product Metadata */}
+                        <div className="flex-grow flex flex-col space-y-1 px-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase truncate max-w-[70%]">
+                              {displayBrand}
                             </span>
+
+                            {/* Stars Rating */}
+                            <div className="flex items-center gap-1 text-amber-500 shrink-0">
+                              <LucideStar className="h-3 w-3 fill-amber-500" />
+                              <span className="text-[10px] font-bold text-gray-600">
+                                {product.rating || "4.5"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <h3
+                            className="text-xs font-bold text-gray-900 uppercase truncate leading-tight mt-1"
+                            title={displayName}
+                          >
+                            {displayName}
+                          </h3>
+
+                          {product.code && (
+                            <span className="text-[10px] font-medium text-gray-400">
+                              Ref: {product.code}
+                            </span>
+                          )}
+                          {product.gender && (
+                            <span className="text-[9px] font-bold tracking-wider text-gray-400 uppercase">
+                              {product.gender}
+                            </span>
+                          )}
+
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 mt-auto">
+                            <span className="text-sm font-extrabold text-black">
+                              {product.price}
+                            </span>
+
+                            {/* Styled Button (Shopping Bag icon style) */}
+                            <button className="bg-black hover:bg-neutral-800 text-white rounded-lg px-3 py-2.5 text-[10px] font-extrabold tracking-wider transition-all duration-300 w-full sm:w-auto text-center cursor-pointer">
+                              VIEW DETAILS
+                            </button>
                           </div>
                         </div>
-
-                        <h3
-                          className="text-xs font-bold text-gray-900 uppercase truncate leading-tight mt-1"
-                          title={displayName}
-                        >
-                          {displayName}
-                        </h3>
-
-                        {product.code && (
-                          <span className="text-[10px] font-medium text-gray-400">
-                            Ref: {product.code}
-                          </span>
-                        )}
-                        {product.gender && (
-                          <span className="text-[9px] font-bold tracking-wider text-gray-400 uppercase">
-                            {product.gender}
-                          </span>
-                        )}
-
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 mt-auto">
-                          <span className="text-sm font-extrabold text-black">
-                            {product.price}
-                          </span>
-
-                          {/* Styled Button (Shopping Bag icon style) */}
-                          <button className="bg-black hover:bg-neutral-800 text-white rounded-lg px-3 py-2.5 text-[10px] font-extrabold tracking-wider transition-all duration-300 w-full sm:w-auto text-center cursor-pointer">
-                            VIEW DETAILS
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-col items-center mt-12 mb-6">
+                  {hasMore && (
+                    <button
+                      onClick={() => setPage((prev) => prev + 1)}
+                      disabled={loadingMore}
+                      className="bg-black hover:bg-neutral-800 text-white px-8 py-3.5 rounded-xl text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          LOADING...
+                        </>
+                      ) : (
+                        "LOAD MORE PRODUCTS"
+                      )}
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -432,12 +655,12 @@ function WatchesCatalogContent() {
 
       {/* Mobile Sidebar Modal overlay */}
       {mobileSidebarOpen && (
-        <div 
-          onClick={() => setMobileSidebarOpen(false)} 
+        <div
+          onClick={() => setMobileSidebarOpen(false)}
           className="fixed inset-0 bg-black/50 z-[9999] flex justify-end"
         >
-          <div 
-            onClick={(e) => e.stopPropagation()} 
+          <div
+            onClick={(e) => e.stopPropagation()}
             className="w-[300px] bg-white h-full p-6 flex flex-col animate-slide-in"
           >
             {/* Header (Sticky / Non-scrollable) */}
@@ -485,7 +708,7 @@ function WatchesCatalogContent() {
                 <input
                   type="range"
                   min="0"
-                  max="250000"
+                  max={DEFAULT_PRICE_MAX}
                   step="5000"
                   value={priceRange[1]}
                   onChange={(e) =>
@@ -495,7 +718,7 @@ function WatchesCatalogContent() {
                 />
                 <div className="flex justify-between text-[10px] text-gray-400 font-semibold">
                   <span>{formatPrice(0)}</span>
-                  <span>{formatPrice(250000)}</span>
+                  <span>{formatPrice(DEFAULT_PRICE_MAX)}</span>
                 </div>
               </div>
 
@@ -519,6 +742,38 @@ function WatchesCatalogContent() {
                       {gender}
                     </label>
                   ))}
+                </div>
+              </div>
+
+              {/* Collection filters */}
+              <div className="border-t border-gray-100 pt-4">
+                <h4 className="text-xs font-bold tracking-wider uppercase text-gray-700 mb-3">
+                  Collection
+                </h4>
+                <div className="space-y-2">
+                  {SHOP_BY_CATEGORY.map((item) => {
+                    const selected = activeFilter === item.slug;
+                    return (
+                      <label
+                        key={item.slug}
+                        className="flex items-center gap-3 text-xs text-gray-600 font-medium cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => setCatalogFilter(item.slug)}
+                          className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer accent-black"
+                        />
+                        <span
+                          className={
+                            selected ? "text-black font-semibold" : ""
+                          }
+                        >
+                          {item.label}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 

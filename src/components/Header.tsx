@@ -48,8 +48,8 @@ export default function Header() {
             <Link href="/watches?category=recommended" className="nav-link">
               Best Sellers
             </Link>
-            <Link href="/watches?category=related" className="nav-link">
-              Technology
+            <Link href="/contact" className="nav-link">
+              Contact
             </Link>
           </nav>
 
@@ -109,11 +109,11 @@ export default function Header() {
             Best Sellers
           </Link>
           <Link 
-            href="/watches?category=related" 
+            href="/contact" 
             onClick={() => setMenuOpen(false)}
             className="hover:text-black pb-3 border-b border-gray-100"
           >
-            Technology
+            Contact
           </Link>
         </nav>
       </div>

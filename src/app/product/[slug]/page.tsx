@@ -8,7 +8,7 @@ import ProductAccordion from '@/components/product/ProductAccordion';
 import RelatedProducts from '@/components/product/RelatedProducts';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import TopStrip from '@/components/TopStrip';
+
 import { getMainProduct, getProductById, getProductBySlug, Product } from '@/db/actions';
 
 export default function ProductPage() {
@@ -117,7 +117,6 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <TopStrip />
       <Header />
       {/* Optional Top Nav / Breadcrumbs could go here */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">

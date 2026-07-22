@@ -38,14 +38,6 @@ body {
   letter-spacing: 0.1em;
 }
 
-/* ---------- top strip ---------- */
-.topstrip {
-  background: #000;
-  color: #fff;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
-
 /* ---------- watch placeholder art ---------- */
 .watch-wrap {
   aspect-ratio: 1/1;

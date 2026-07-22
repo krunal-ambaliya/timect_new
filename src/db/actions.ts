@@ -1,6 +1,11 @@
 "use server";
 
 import { sql } from "./neon";
+import { getCatalogFilter } from "@/data/categoryFilters";
+import {
+  catalogFilterSqlKeywords,
+  productMatchesCatalogFilter,
+} from "@/lib/specifications";
 
 export interface Variant {
   id: string;
@@ -44,7 +49,6 @@ export interface Product {
   
   // New arrival fields
   tag?: string;
-  emi?: string;
   
   // Recommended fields
   code?: string;
@@ -79,7 +83,6 @@ function mapRowToProduct(row: any): Product {
     specifications: row.specifications || undefined,
     
     tag: row.tag || undefined,
-    emi: row.emi || undefined,
     
     code: row.code || undefined,
     
@@ -185,76 +188,175 @@ export async function getFilteredProducts(filters: {
   priceMin?: number;
   priceMax?: number;
   category?: string; // 'all', 'new', 'recommended', 'related'
+  /**
+   * Shop-by-category / collection slug (e.g. quartz-precision, blue).
+   * Matched against products.specifications JSONB + related text fields.
+   */
+  filter?: string;
+  /**
+   * Optional free-form specification keyword(s), comma-separated.
+   * Example: "Quartz,Chronograph" — any match in specifications JSONB.
+   */
+  spec?: string;
   sortBy?: string; // 'newest' | 'price-asc' | 'price-desc'
-}): Promise<Product[]> {
+  page?: number;
+  pageSize?: number;
+}): Promise<{ products: Product[]; total: number; hasMore: boolean }> {
   try {
-    const rows = await sql`SELECT * FROM products ORDER BY id ASC`;
+    const catalogFilter = getCatalogFilter(filters.filter);
+    const sqlKeywords = catalogFilter
+      ? catalogFilterSqlKeywords(catalogFilter)
+      : [];
+    const freeSpecKeywords = (filters.spec || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    // PostgreSQL JSONB pre-filter: shrink candidate set using ILIKE on specs + text fields.
+    // Precise category matching still runs in JS (supports section/label structure).
+    let rows;
+    const prefilterKeywords = [...sqlKeywords, ...freeSpecKeywords];
+
+    if (prefilterKeywords.length > 0) {
+      // Regex any-of for JSONB text + catalog fields (GIN index helps specs lookups at scale)
+      const escaped = prefilterKeywords
+        .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|");
+      const pattern = `(${escaped})`;
+      rows = await sql`
+        SELECT * FROM products
+        WHERE
+          COALESCE(specifications::text, '') ~* ${pattern}
+          OR COALESCE(name, '') ~* ${pattern}
+          OR COALESCE(title, '') ~* ${pattern}
+          OR COALESCE(subtitle, '') ~* ${pattern}
+          OR COALESCE(description, '') ~* ${pattern}
+          OR COALESCE(collection, '') ~* ${pattern}
+          OR COALESCE(brand, '') ~* ${pattern}
+        ORDER BY id ASC
+      `;
+    } else {
+      rows = await sql`SELECT * FROM products ORDER BY id ASC`;
+    }
+
     let products = rows.map(mapRowToProduct);
 
-    // 1. Filter by category pill
-    if (filters.category && filters.category !== 'all') {
-      if (filters.category === 'new') {
-        products = products.filter(p => p.isNewArrival);
-      } else if (filters.category === 'recommended') {
-        products = products.filter(p => p.isRecommended);
-      } else if (filters.category === 'related') {
-        products = products.filter(p => p.isRelated);
+    // 1. Filter by category pill (homepage sections)
+    if (filters.category && filters.category !== "all") {
+      if (filters.category === "new") {
+        products = products.filter((p) => p.isNewArrival);
+      } else if (filters.category === "recommended") {
+        products = products.filter((p) => p.isRecommended);
+      } else if (filters.category === "related") {
+        products = products.filter((p) => p.isRelated);
       }
+    }
+
+    // 2. Catalog filter from shop-by-category / collection cards (specifications JSONB)
+    if (catalogFilter) {
+      products = products.filter((p) =>
+        productMatchesCatalogFilter(p, catalogFilter),
+      );
+    }
+
+    // 3. Free-form spec keywords (any match against flattened specifications)
+    if (freeSpecKeywords.length > 0) {
+      products = products.filter((p) => {
+        const blob = [
+          JSON.stringify(p.specifications || []),
+          p.name,
+          p.title,
+          p.description,
+          p.collection,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return freeSpecKeywords.some((kw) => blob.includes(kw.toLowerCase()));
+      });
     }
 
     // Helper to clean price string to number for comparison
     const parsePrice = (priceStr: string): number => {
-      const cleaned = priceStr.replace(/[^\d.]/g, '');
+      const cleaned = priceStr.replace(/[^\d.]/g, "");
       return cleaned ? parseFloat(cleaned) : 0;
     };
 
-    // 2. Filter by price range
+    // 4. Filter by price range
     if (filters.priceMin !== undefined) {
-      products = products.filter(p => parsePrice(p.price) >= (filters.priceMin || 0));
+      products = products.filter(
+        (p) => parsePrice(p.price) >= (filters.priceMin || 0),
+      );
     }
     if (filters.priceMax !== undefined) {
-      products = products.filter(p => parsePrice(p.price) <= (filters.priceMax || Infinity));
+      products = products.filter(
+        (p) => parsePrice(p.price) <= (filters.priceMax || Infinity),
+      );
     }
 
-    // 3. Filter by gender
+    // 5. Filter by gender
     if (filters.genders && filters.genders.length > 0) {
-      products = products.filter(p => p.gender && filters.genders!.includes(p.gender));
+      products = products.filter(
+        (p) => p.gender && filters.genders!.includes(p.gender),
+      );
     }
 
-    // 4. Filter by brand
+    // 6. Filter by brand
     if (filters.brands && filters.brands.length > 0) {
-      products = products.filter(p => {
-        const productBrand = p.brand || p.collection || 'Seiko'; // default fallback
-        return filters.brands!.some(b => productBrand.toLowerCase().includes(b.toLowerCase()));
+      products = products.filter((p) => {
+        const productBrand = p.brand || p.collection || "Seiko";
+        return filters.brands!.some((b) =>
+          productBrand.toLowerCase().includes(b.toLowerCase()),
+        );
       });
     }
 
-    // 5. Filter by search query
+    // 7. Filter by search query (includes specifications JSON)
     if (filters.search) {
       const q = filters.search.toLowerCase();
-      products = products.filter(p => {
-        const name = (p.name || p.title || '').toLowerCase();
-        const brand = (p.brand || p.collection || '').toLowerCase();
-        const subtitle = (p.subtitle || p.description || '').toLowerCase();
-        return name.includes(q) || brand.includes(q) || subtitle.includes(q);
+      products = products.filter((p) => {
+        const name = (p.name || p.title || "").toLowerCase();
+        const brand = (p.brand || p.collection || "").toLowerCase();
+        const subtitle = (p.subtitle || p.description || "").toLowerCase();
+        const specs = JSON.stringify(p.specifications || []).toLowerCase();
+        return (
+          name.includes(q) ||
+          brand.includes(q) ||
+          subtitle.includes(q) ||
+          specs.includes(q)
+        );
       });
     }
 
-    // 6. Sort
+    // 8. Sort
     if (filters.sortBy) {
-      if (filters.sortBy === 'price-asc') {
+      if (filters.sortBy === "price-asc") {
         products.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
-      } else if (filters.sortBy === 'price-desc') {
+      } else if (filters.sortBy === "price-desc") {
         products.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
-      } else if (filters.sortBy === 'newest') {
+      } else if (filters.sortBy === "newest") {
         products.sort((a, b) => b.id - a.id);
       }
     }
 
-    return products;
+    const total = products.length;
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 20;
+    const start = (page - 1) * pageSize;
+    const paginatedProducts = products.slice(start, start + pageSize);
+
+    return {
+      products: paginatedProducts,
+      total,
+      hasMore: start + pageSize < total,
+    };
   } catch (error) {
     console.error("Error filtering products:", error);
-    return [];
+    return {
+      products: [],
+      total: 0,
+      hasMore: false,
+    };
   }
 }
 

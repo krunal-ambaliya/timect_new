@@ -8,13 +8,12 @@ import Lenis from "@studio-freight/lenis";
 import { getNewArrivals, getRecommended, Product } from "@/db/actions";
 
 import Preloader from "@/components/Preloader";
-import TopStrip from "@/components/TopStrip";
+
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import NewArrivals from "@/components/NewArrivals";
 import Recommended from "@/components/Recommended";
 import ShopByCategory from "@/components/ShopByCategory";
-import CollectionBanners from "@/components/CollectionBanners";
 import ForHimHer from "@/components/ForHimHer";
 import Quote from "@/components/Quote";
 import Footer from "@/components/Footer";
@@ -94,7 +93,6 @@ export default function Home() {
 
     gsap.set('.prod-item', { opacity: 0, y: 40 });
     gsap.set('.cat-tile', { clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)' });
-    gsap.set('.collection-tile', { opacity: 0, y: 30 });
     gsap.set('footer .footer-col', { opacity: 0, y: 20 });
     document.querySelectorAll('.bg-\\[\\#f4f4f2\\] *').forEach(el => {
         if(el.tagName !== 'IMG') gsap.set(el, { opacity: 0, y: 20 });
@@ -211,12 +209,6 @@ export default function Home() {
         onEnter: batch => gsap.to(batch, {clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)', stagger: 0.1, duration: 1, ease: 'power3.out'}),
         start: "top 80%"
       });
-
-      // Collection Grid Reveal
-      ScrollTrigger.batch('.collection-tile', {
-        onEnter: batch => gsap.to(batch, {opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: 'power2.out'}),
-        start: "top 85%"
-      });
       
       // Featured Watch Reveal
       gsap.fromTo('.grid.md\\:grid-cols-2 .watch-wrap', 
@@ -266,13 +258,11 @@ export default function Home() {
       <div className="scroll-progress"></div>
       <Preloader />
       <div className="back-to-top">↑</div>
-      <TopStrip />
       <Header />
       <Hero />
       <NewArrivals products={newArrivals} />
       <Recommended products={recommended} />
       <ShopByCategory />
-      <CollectionBanners />
       <ForHimHer />
       <Quote />
       <Footer />

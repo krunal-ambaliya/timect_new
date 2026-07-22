@@ -165,11 +165,6 @@ export default function NewArrivals({ products: initialProducts }: { products?: 
               className="text-center w-[calc((100vw-48px)/2)] sm:w-[240px] md:w-[280px] flex-shrink-0 group/card cursor-pointer snap-start"
             >
               <div className="watch-wrap relative transition mb-4 md:mb-6 bg-white overflow-hidden">
-                {product.tag && (
-                  <span className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10 whitespace-nowrap">
-                    {product.tag}
-                  </span>
-                )}
                 {product.hoverImage ? (
                   <>
                     <img
@@ -189,11 +184,6 @@ export default function NewArrivals({ products: initialProducts }: { products?: 
                     alt={product.name || ""}
                     className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                   />
-                )}
-                {product.emi && (
-                  <span className="absolute bottom-0 right-0 bg-black text-white text-[10px] font-bold px-2 py-1 tracking-wider z-10 whitespace-nowrap">
-                    {product.emi}
-                  </span>
                 )}
               </div>
               <div className="space-y-2 px-2 pointer-events-none">

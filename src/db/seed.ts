@@ -60,7 +60,6 @@ async function main() {
       specifications JSONB,
       
       tag TEXT,
-      emi TEXT,
       
       code TEXT,
       
@@ -70,6 +69,13 @@ async function main() {
       rating NUMERIC(2,1) DEFAULT 4.5,
       hover_image TEXT
     );
+  `;
+
+  // GIN index for flexible JSONB specification filtering (no per-attribute columns)
+  console.log("Creating GIN index on specifications...");
+  await sql`
+    CREATE INDEX IF NOT EXISTS products_specifications_gin
+    ON products USING GIN (specifications jsonb_path_ops);
   `;
   
   // 3. Clear existing database rows
@@ -195,11 +201,12 @@ async function main() {
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        slug, name, price, image, tag, emi, gender, rating, hover_image
+        slug, name, price, image, tag, gender, rating, hover_image, specifications
       ) VALUES (
         FALSE, TRUE, FALSE, FALSE,
-        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.tag || null}, ${item.emi || null},
-        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null}
+        ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.tag || null},
+        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null},
+        ${JSON.stringify(item.specifications || [])}
       );
     `;
   }
@@ -211,11 +218,12 @@ async function main() {
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        slug, name, price, image, code, gender, rating, hover_image
+        slug, name, price, image, code, gender, rating, hover_image, specifications
       ) VALUES (
         FALSE, FALSE, TRUE, FALSE,
         ${slug}, ${item.name}, ${item.price}, ${item.image || null}, ${item.code || null},
-        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null}
+        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null},
+        ${JSON.stringify(item.specifications || [])}
       );
     `;
   }
@@ -227,11 +235,12 @@ async function main() {
     await sql`
       INSERT INTO products (
         is_main_product, is_new_arrival, is_recommended, is_related,
-        slug, price, image, collection, description, gender, rating, hover_image
+        slug, price, image, collection, description, gender, rating, hover_image, specifications
       ) VALUES (
         FALSE, FALSE, FALSE, TRUE,
         ${slug}, ${item.price}, ${item.image || null}, ${item.collection || null}, ${item.description || null},
-        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null}
+        ${item.gender || null}, ${item.rating || 4.5}, ${item.hover_image || null},
+        ${JSON.stringify(item.specifications || [])}
       );
     `;
   }

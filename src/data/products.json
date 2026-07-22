@@ -6,7 +6,10 @@
     "subtitle": "Automatic watch, Ø 42.00 mm, stainless steel and ceramic bezel, L3.788.4.98.6",
     "price": "₹225,000.00",
     "priceSubtext": "Recommended Retail Price - Our authorized retailers remain free to set their own price",
-    "sizes": ["39 mm", "42 mm"],
+    "sizes": [
+      "39 mm",
+      "42 mm"
+    ],
     "gender": "Unisex",
     "rating": 4.9,
     "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
@@ -18,11 +21,31 @@
       "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048475/timect/image_6.jpg"
     ],
     "variants": [
-      { "id": "v1", "name": "Blue", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png" },
-      { "id": "v2", "name": "Green", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048476/timect/image_7.jpg" },
-      { "id": "v3", "name": "Black", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048477/timect/image_8.webp" },
-      { "id": "v4", "name": "Silver", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048480/timect/image_9.png" },
-      { "id": "v5", "name": "Gold", "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048468/timect/daydate_blue.png" }
+      {
+        "id": "v1",
+        "name": "Blue",
+        "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      },
+      {
+        "id": "v2",
+        "name": "Green",
+        "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048476/timect/image_7.jpg"
+      },
+      {
+        "id": "v3",
+        "name": "Black",
+        "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048477/timect/image_8.webp"
+      },
+      {
+        "id": "v4",
+        "name": "Silver",
+        "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048480/timect/image_9.png"
+      },
+      {
+        "id": "v5",
+        "name": "Gold",
+        "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048468/timect/daydate_blue.png"
+      }
     ],
     "specifications": [
       {
@@ -32,17 +55,31 @@
           "Material: Stainless steel and ceramic bezel",
           "Glass: Scratch-resistant sapphire crystal, with several layers of anti-reflective coating on both sides",
           "Dimension: 42.00 mm",
-          "Water Resistance: Water-resistant to 30 bar"
+          "Water Resistance: Water-resistant to 30 bar",
+          "Thickness: 12.50 mm",
+          "Lug width: 21 mm"
         ]
       },
       {
         "title": "Dial & Hands",
         "type": "grid",
         "items": [
-          { "label": "Dial color", "value": "Frosted Blue sunray" },
-          { "label": "Hands", "value": "Silvered polished hands" },
-          { "label": "Hour markers", "value": "Applied indexes" },
-          { "label": "Specificities", "value": "Swiss Super-LumiNova®" }
+          {
+            "label": "Dial color",
+            "value": "Frosted Blue sunray"
+          },
+          {
+            "label": "Hands",
+            "value": "Silvered polished hands"
+          },
+          {
+            "label": "Hour markers",
+            "value": "Applied indexes"
+          },
+          {
+            "label": "Specificities",
+            "value": "Swiss Super-LumiNova®"
+          }
         ]
       },
       {
@@ -51,7 +88,8 @@
         "items": [
           "Movement Type: Automatic",
           "Caliber: L888",
-          "Power Reserve: ~72 hours"
+          "Power Reserve: ~72 hours",
+          "Accuracy: -5 to +5 seconds per day (target)"
         ]
       },
       {
@@ -63,6 +101,15 @@
         "title": "General",
         "type": "text",
         "content": "Exclusive edition combining technical excellence with elegant design."
+      },
+      {
+        "title": "Style",
+        "type": "details",
+        "items": [
+          "Category: Sports",
+          "Category: Diving",
+          "Collection: Exclusive Edition"
+        ]
       }
     ]
   },
@@ -73,10 +120,71 @@
       "name": "Presage Classic Series \"Tomioka Silk Promotion Organization\" Limited Edition - HCC008J1",
       "price": "₹ 1,30,000",
       "tag": "NEW",
-      "emi": "NO COST EMI",
       "gender": "Men",
       "rating": 4.8,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: 316L stainless steel, high-polish finish",
+            "Glass: Dual-curved sapphire crystal with AR coating",
+            "Dimension: 40.50 mm",
+            "Thickness: 11.20 mm",
+            "Lug-to-lug: 47.00 mm",
+            "Water Resistance: Water-resistant to 5 bar (50 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Ivory Tomioka silk texture"
+            },
+            {
+              "label": "Hands",
+              "value": "Blued steel leaf hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied gold-tone indexes"
+            },
+            {
+              "label": "Specificities",
+              "value": "Limited silk-pattern dial print"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Caliber: 6R35-equivalent mechanical",
+            "Power Reserve: ~70 hours",
+            "Functions: Hours, minutes, seconds, date",
+            "Accuracy: -15 to +25 seconds per day"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Crocodile-embossed leather strap, 20 mm, with stainless steel pin buckle. Quick-release spring bars."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Luxury",
+            "Category: Limited Edition",
+            "Collection: Presage Classic"
+          ]
+        }
+      ]
     },
     {
       "id": 2,
@@ -84,10 +192,61 @@
       "name": "Presage Classic Series with Sakura Iro Light Pink Dial Silk - HCC003J1",
       "price": "₹ 1,10,000",
       "tag": "NEW",
-      "emi": "NO COST EMI",
       "gender": "Women",
       "rating": 4.7,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 36.00 mm",
+            "Water Resistance: Water-resistant to 5 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Sakura pink"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Leather strap with pin buckle."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Ladies",
+            "Category: Classic"
+          ]
+        }
+      ]
     },
     {
       "id": 3,
@@ -95,10 +254,63 @@
       "name": "Presage Classic Series with Wakatake Iro Light Green Dial Silk - HCC002J1",
       "price": "₹ 1,10,000",
       "tag": "NEW",
-      "emi": "NO COST EMI",
       "gender": "Unisex",
       "rating": 4.6,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Brushed stainless steel",
+            "Glass: Hardlex crystal",
+            "Dimension: 40.00 mm",
+            "Water Resistance: Water-resistant to 5 bar (50 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Wakatake light green enamel"
+            },
+            {
+              "label": "Hands",
+              "value": "Dauphine polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Printed Arabic numerals"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Caliber: 4R35",
+            "Power Reserve: ~41 hours",
+            "Functions: Date window at 3 o'clock"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Dark brown calf leather strap with contrast stitching and signed buckle."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Classic",
+            "Category: Elegant"
+          ]
+        }
+      ]
     },
     {
       "id": 4,
@@ -106,10 +318,61 @@
       "name": "Seiko Presage Classic Series with Shironeri Dial Silk - HCC001J1",
       "price": "₹ 1,10,000",
       "tag": "NEW",
-      "emi": "NO COST EMI",
       "gender": "Men",
       "rating": 4.8,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 40.00 mm",
+            "Water Resistance: Water-resistant to 5 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Shironeri white"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Leather strap with pin buckle."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Luxury",
+            "Category: Classic"
+          ]
+        }
+      ]
     },
     {
       "id": 5,
@@ -117,10 +380,67 @@
       "name": "Seiko Prospex Alpinist Mechanical - SPB121J1",
       "price": "₹ 75,000",
       "tag": "NEW",
-      "emi": "NO COST EMI",
       "gender": "Men",
       "rating": 4.9,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel with black hard coating",
+            "Glass: Sapphire crystal",
+            "Dimension: 39.50 mm",
+            "Water Resistance: Water-resistant to 20 bar (200 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Forest green Alpinist"
+            },
+            {
+              "label": "Hands",
+              "value": "Luminous sword hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Luminous applied markers"
+            },
+            {
+              "label": "Specificities",
+              "value": "Rotating compass bezel ring"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Caliber: 6R35",
+            "Power Reserve: ~70 hours",
+            "Functions: Date, dual-time GMT hand, compass bezel"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Solid-link stainless steel bracelet with push-button folding clasp and diver extension."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Diving",
+            "Collection: Prospex"
+          ]
+        }
+      ]
     },
     {
       "id": 6,
@@ -128,10 +448,60 @@
       "name": "Astron GPS Solar 5X Dual-Time - SSH107J1",
       "price": "₹ 2,40,000",
       "tag": "NEW",
-      "emi": "NO COST EMI",
       "gender": "Men",
       "rating": 4.9,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Titanium",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 42.70 mm",
+            "Water Resistance: Water-resistant to 10 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Blue"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: GPS Solar",
+            "Functions: Dual-Time, Chronograph"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Titanium bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Collection: Astron"
+          ]
+        }
+      ]
     }
   ],
   "recommended": [
@@ -143,7 +513,63 @@
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
       "gender": "Men",
       "rating": 4.9,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Zaratsu-polished stainless steel",
+            "Glass: Box-shaped sapphire crystal",
+            "Dimension: 38.60 mm",
+            "Water Resistance: Water-resistant to 5 bar (50 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Silver sunburst"
+            },
+            {
+              "label": "Hands",
+              "value": "Facetted dauphine hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied multi-facet indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Caliber: 6L35 high-beat",
+            "Power Reserve: ~45 hours",
+            "Functions: Hours, minutes, seconds",
+            "Accuracy: +15 to -10 seconds per day"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Three-link stainless steel bracelet with hidden folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Luxury",
+            "Category: Classic",
+            "Collection: King Seiko"
+          ]
+        }
+      ]
     },
     {
       "id": 2,
@@ -153,7 +579,58 @@
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "gender": "Men",
       "rating": 4.8,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 40.60 mm",
+            "Water Resistance: Water-resistant to 20 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Blue"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Diving"
+          ]
+        }
+      ]
     },
     {
       "id": 3,
@@ -163,7 +640,59 @@
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
       "gender": "Unisex",
       "rating": 4.5,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 40.00 mm",
+            "Water Resistance: Water-resistant to 5 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Green"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Leather strap with pin buckle."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Elegant",
+            "Category: Classic"
+          ]
+        }
+      ]
     },
     {
       "id": 4,
@@ -173,7 +702,57 @@
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "gender": "Unisex",
       "rating": 4.6,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 42.50 mm",
+            "Water Resistance: Water-resistant to 10 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Black"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Functions: Day, Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports"
+          ]
+        }
+      ]
     },
     {
       "id": 5,
@@ -183,7 +762,58 @@
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
       "gender": "Men",
       "rating": 4.8,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Titanium",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 41.00 mm",
+            "Water Resistance: Water-resistant to 10 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Blue"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: GPS Solar",
+            "Functions: World time"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Luxury"
+          ]
+        }
+      ]
     },
     {
       "id": 6,
@@ -193,7 +823,60 @@
       "image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
       "gender": "Unisex",
       "rating": 4.7,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Hardlex crystal",
+            "Dimension: 39.00 mm",
+            "Water Resistance: Water-resistant to 10 bar (100 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Matte black chronograph"
+            },
+            {
+              "label": "Hands",
+              "value": "Luminous baton hands with chrono counters"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied markers with subdials at 2-6-10"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Caliber: 7T92 chronograph quartz",
+            "Functions: Chronograph, 60-minute counter, date",
+            "Battery Life: Approx. 3 years"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Black silicone sports strap, 20 mm, with stainless steel buckle."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Chronograph"
+          ]
+        }
+      ]
     }
   ],
   "relatedProducts": [
@@ -205,7 +888,65 @@
       "price": "₹114,000.00",
       "gender": "Unisex",
       "rating": 4.5,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel with ceramic unidirectional bezel",
+            "Glass: Sapphire crystal with AR coating",
+            "Dimension: 39.00 mm",
+            "Water Resistance: Water-resistant to 30 bar (300 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Frosted blue sunray"
+            },
+            {
+              "label": "Hands",
+              "value": "Rhodium-plated luminous hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied luminous indexes"
+            },
+            {
+              "label": "Specificities",
+              "value": "Swiss Super-LumiNova"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Caliber: L152.2",
+            "Functions: Hours, minutes, seconds, date",
+            "Battery Life: Approx. 4 years"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with double safety folding clasp and diving extension."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Diving",
+            "Collection: HYDROCONQUEST"
+          ]
+        }
+      ]
     },
     {
       "id": 2,
@@ -215,7 +956,59 @@
       "price": "₹120,000.00",
       "gender": "Men",
       "rating": 4.6,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 44.00 mm",
+            "Water Resistance: Water-resistant to 30 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Black"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Diving",
+            "Collection: HYDROCONQUEST"
+          ]
+        }
+      ]
     },
     {
       "id": 3,
@@ -225,7 +1018,59 @@
       "price": "₹120,000.00",
       "gender": "Men",
       "rating": 4.7,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 44.00 mm",
+            "Water Resistance: Water-resistant to 30 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Blue"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Functions: Date, Chronograph"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Chronograph",
+            "Collection: HYDROCONQUEST"
+          ]
+        }
+      ]
     },
     {
       "id": 4,
@@ -235,7 +1080,61 @@
       "price": "₹133,000.00",
       "gender": "Men",
       "rating": 4.8,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel with yellow gold PVD coating",
+            "Glass: Sapphire crystal",
+            "Dimension: 41.00 mm",
+            "Water Resistance: Water-resistant to 30 bar (300 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Champagne gold sunray"
+            },
+            {
+              "label": "Hands",
+              "value": "Gold-tone luminous hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied gold-tone indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Caliber: L152",
+            "Functions: Date",
+            "Battery Life: Approx. 4 years"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Yellow gold PVD stainless steel bracelet with double safety clasp. Gold Truton finishing."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Gold Truton",
+            "Collection: Gold Truton"
+          ]
+        }
+      ]
     },
     {
       "id": 5,
@@ -245,7 +1144,59 @@
       "price": "₹133,000.00",
       "gender": "Men",
       "rating": 4.8,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel and red PVD coating",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 41.00 mm",
+            "Water Resistance: Water-resistant to 30 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Black"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Special Edition",
+            "Collection: HYDROCONQUEST"
+          ]
+        }
+      ]
     },
     {
       "id": 6,
@@ -255,7 +1206,59 @@
       "price": "₹140,000.00",
       "gender": "Unisex",
       "rating": 4.7,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 39.00 mm",
+            "Water Resistance: Water-resistant to 30 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Blue"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Automatic",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Category: Diving",
+            "Collection: HYDROCONQUEST"
+          ]
+        }
+      ]
     },
     {
       "id": 7,
@@ -265,7 +1268,58 @@
       "price": "₹114,000.00",
       "gender": "Unisex",
       "rating": 4.5,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel",
+            "Glass: Scratch-resistant sapphire crystal",
+            "Dimension: 39.00 mm",
+            "Water Resistance: Water-resistant to 30 bar"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Silver"
+            },
+            {
+              "label": "Hands",
+              "value": "Polished hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Applied indexes"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Functions: Date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Stainless steel bracelet with folding clasp."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Sports",
+            "Collection: HYDROCONQUEST"
+          ]
+        }
+      ]
     },
     {
       "id": 8,
@@ -275,7 +1329,66 @@
       "price": "₹114,000.00",
       "gender": "Unisex",
       "rating": 4.4,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel with rose gold PVD",
+            "Glass: Mineral crystal",
+            "Dimension: 36.00 mm",
+            "Water Resistance: Water-resistant to 5 bar (50 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Mother-of-pearl white"
+            },
+            {
+              "label": "Hands",
+              "value": "Rose gold-tone slender hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Crystal-set indexes"
+            },
+            {
+              "label": "Specificities",
+              "value": "Ladies dress proportions"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Caliber: Ronda 762",
+            "Functions: Date",
+            "Battery Life: Approx. 3 years"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Rose gold-tone bracelet with folding clasp, adjustable links."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Ladies",
+            "Category: Rose gold",
+            "Category: Luxury"
+          ]
+        }
+      ]
     },
     {
       "id": 9,
@@ -285,7 +1398,61 @@
       "price": "₹114,000.00",
       "gender": "Unisex",
       "rating": 4.6,
-      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png"
+      "hover_image": "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048472/timect/image_2.png",
+      "specifications": [
+        {
+          "title": "Case",
+          "type": "details",
+          "items": [
+            "Material: Stainless steel and rose gold PVD bezel",
+            "Glass: Sapphire crystal",
+            "Dimension: 34.00 mm",
+            "Water Resistance: Water-resistant to 5 bar (50 m)"
+          ]
+        },
+        {
+          "title": "Dial & Hands",
+          "type": "grid",
+          "items": [
+            {
+              "label": "Dial color",
+              "value": "Rose gold sunray"
+            },
+            {
+              "label": "Hands",
+              "value": "Rose gold leaf hands"
+            },
+            {
+              "label": "Hour markers",
+              "value": "Printed rose gold markers"
+            }
+          ]
+        },
+        {
+          "title": "Movement & Functions",
+          "type": "details",
+          "items": [
+            "Movement Type: Quartz",
+            "Functions: Hours, minutes, seconds, date"
+          ]
+        },
+        {
+          "title": "Strap",
+          "type": "text",
+          "content": "Soft taupe leather strap with rose gold-tone pin buckle. Ideal for Ladies formal wear."
+        },
+        {
+          "title": "Style",
+          "type": "details",
+          "items": [
+            "Category: Dress",
+            "Category: Ladies",
+            "Category: Rose gold",
+            "Category: Elegant",
+            "Category: Special Edition"
+          ]
+        }
+      ]
     }
   ]
 }
