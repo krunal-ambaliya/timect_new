@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 
 import { getMainProduct, getProductById, getProductBySlug, getProductSlugByImage, Product } from '@/db/actions';
+import { signalPageReady } from '@/lib/page-ready';
 
 /** Keep already-fetched variants so switching feels instant. */
 const productCache = new Map<string, Product>();
@@ -195,30 +196,17 @@ export default function ProductPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slugStr, router, applyProduct]);
 
+  // Tell Timect preloader to exit only when real content is ready (no skeleton flash)
+  useEffect(() => {
+    if (!initialLoading && (productData || notFound)) {
+      signalPageReady();
+    }
+  }, [initialLoading, productData, notFound]);
+
+  // Blank white while loading — global Timect preloader covers this entirely
   if (initialLoading && !productData) {
     return (
-      <div className="min-h-screen bg-white">
-        <Header />
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
-            <div className="w-full aspect-[4/5] bg-gray-100 animate-pulse rounded-sm" />
-            <div className="w-full max-w-xl mx-auto lg:mx-0 pt-4 lg:pt-12 space-y-6">
-              <div className="h-6 w-24 bg-gray-100 animate-pulse" />
-              <div className="h-10 w-3/4 bg-gray-100 animate-pulse" />
-              <div className="h-4 w-1/2 bg-gray-100 animate-pulse" />
-              <div className="h-8 w-32 bg-gray-100 animate-pulse mt-6" />
-              {/* Shared CTA shell — visible immediately so page never feels empty */}
-              <div className="mt-4 flex flex-col gap-3">
-                <div className="h-14 w-full rounded bg-[#25D366]/90" />
-                <p className="text-xs text-gray-600 text-center mt-1">
-                  Available Exclusively at Corporate Boutiques and e-commerce
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
+      <div className="min-h-screen bg-white" aria-busy="true" aria-label="Loading product" />
     );
   }
 

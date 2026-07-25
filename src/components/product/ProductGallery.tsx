@@ -16,14 +16,14 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
   }, [images]);
 
   return (
-    <div className="flex flex-col-reverse lg:flex-row gap-4 h-full">
+    <div className="flex flex-col-reverse lg:flex-row gap-3 h-full max-w-[560px] lg:max-w-none mx-auto lg:mx-0">
       {/* Thumbnails */}
-      <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-y-auto no-scrollbar lg:w-24 shrink-0 py-2 lg:py-0">
+      <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto no-scrollbar lg:w-16 shrink-0 py-1 lg:py-0">
         {images.map((img, index) => (
           <button
             key={`${img}-${index}`}
             onClick={() => setSelectedImage(img)}
-            className={`relative w-20 h-24 lg:w-full lg:h-32 shrink-0 overflow-hidden bg-gray-50 border transition-colors ${
+            className={`relative w-14 h-16 lg:w-full lg:h-20 shrink-0 overflow-hidden bg-gray-50 border transition-colors ${
               selectedImage === img ? 'border-gray-800' : 'border-transparent hover:border-gray-300'
             }`}
           >
@@ -31,22 +31,22 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
               src={img}
               alt={`Thumbnail ${index + 1}`}
               fill
-              sizes="80px"
-              className="object-cover"
+              sizes="56px"
+              className="object-contain p-0.5"
             />
           </button>
         ))}
       </div>
 
-      {/* Main Image */}
-      <div className="relative w-full aspect-[4/5] lg:aspect-auto lg:h-[800px] bg-gray-50 overflow-hidden flex-grow">
+      {/* Main Image — compact so it doesn’t dominate the product detail layout */}
+      <div className="relative w-full aspect-[4/5] max-h-[420px] lg:max-h-[520px] lg:h-[min(520px,70vh)] bg-gray-50 overflow-hidden flex-grow">
         {selectedImage && (
           <Image
             src={selectedImage}
             alt="Product Main Image"
             fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 40vw"
+            className="object-contain p-2"
             priority
           />
         )}

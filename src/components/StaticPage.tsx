@@ -1,6 +1,9 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, type ReactNode } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { signalPageReady } from "@/lib/page-ready";
 
 type StaticPageProps = {
   title: string;
@@ -13,6 +16,10 @@ export default function StaticPage({
   subtitle,
   children,
 }: StaticPageProps) {
+  useEffect(() => {
+    signalPageReady();
+  }, []);
+
   return (
     <div>
       <Header />

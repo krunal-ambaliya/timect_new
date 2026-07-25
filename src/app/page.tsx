@@ -98,44 +98,36 @@ export default function Home() {
         if(el.tagName !== 'IMG') gsap.set(el, { opacity: 0, y: 20 });
     });
 
-    // Preloader Timeline Control
-    const hasSeenPreloader = typeof window !== 'undefined' ? sessionStorage.getItem('hasSeenPreloader') : 'false';
-
-    if (hasSeenPreloader === 'true') {
-      gsap.set(preloader, { yPercent: -100, autoAlpha: 0, display: 'none' });
-      initPageAnimations();
-    } else {
-      const checkAndExit = () => {
-        if (introFinishedRef.current && productsLoadedRef.current) {
-          playExitAnimation();
-        }
-      };
-
-      triggerExitRef.current = checkAndExit;
-
-      const tlPreload = gsap.timeline({
-        onComplete: () => {
-          introFinishedRef.current = true;
-          checkAndExit();
-        }
-      });
-
-      tlPreload.to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: 'power2.out' })
-        .to(preloaderLine, { scaleX: 1, duration: 1.2, ease: 'expo.inOut' }, "-=0.3");
-
-      function playExitAnimation() {
-        const tlExit = gsap.timeline();
-        tlExit.to('.preloader-text', { autoAlpha: 0, duration: 0.3 })
-          .to(preloaderLogo, { autoAlpha: 0, duration: 0.4, y: -20 }, "-=0.2")
-          .to(preloaderLine, { autoAlpha: 0, duration: 0.3 }, "-=0.3")
-          .to(preloader, { yPercent: -100, duration: 0.8, ease: 'power3.inOut' })
-          .call(() => {
-            if (typeof window !== 'undefined') {
-              sessionStorage.setItem('hasSeenPreloader', 'true');
-            }
-            initPageAnimations();
-          });
+    // Timect preloader on every homepage visit (waits for intro + product API)
+    const checkAndExit = () => {
+      if (introFinishedRef.current && productsLoadedRef.current) {
+        playExitAnimation();
       }
+    };
+
+    triggerExitRef.current = checkAndExit;
+
+    const tlPreload = gsap.timeline({
+      onComplete: () => {
+        introFinishedRef.current = true;
+        checkAndExit();
+      },
+    });
+
+    tlPreload
+      .to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: "power2.out" })
+      .to(preloaderLine, { scaleX: 1, duration: 1.2, ease: "expo.inOut" }, "-=0.3");
+
+    function playExitAnimation() {
+      const tlExit = gsap.timeline();
+      tlExit
+        .to(".preloader-text", { autoAlpha: 0, duration: 0.3 })
+        .to(preloaderLogo, { autoAlpha: 0, duration: 0.4, y: -20 }, "-=0.2")
+        .to(preloaderLine, { autoAlpha: 0, duration: 0.3 }, "-=0.3")
+        .to(preloader, { yPercent: -100, duration: 0.8, ease: "power3.inOut" })
+        .call(() => {
+          initPageAnimations();
+        });
     }
 
     function initPageAnimations() {

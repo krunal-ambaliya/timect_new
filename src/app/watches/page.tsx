@@ -14,6 +14,7 @@ import {
   catalogThumbUrl,
   CATALOG_FALLBACK_IMAGE,
 } from "@/lib/catalog-image";
+import { signalPageReady } from "@/lib/page-ready";
 import {
   LucideSearch,
   LucideSlidersHorizontal,
@@ -77,7 +78,7 @@ function ProgressiveImage({
     <div className="relative aspect-square w-full bg-slate-100 rounded-xl mb-4 overflow-hidden">
       {/* Soft placeholder until the photo decodes */}
       <div
-        className={`absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 product-hover-crossfade ${
           primaryLoaded ? "opacity-0" : "opacity-100"
         }`}
         aria-hidden
@@ -98,9 +99,9 @@ function ProgressiveImage({
             setPrimaryLoaded(true);
           }
         }}
-        className={`absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-300 ${
+        className={`product-hover-crossfade absolute inset-0 w-full h-full object-contain pointer-events-none ${
           primaryLoaded ? "opacity-100" : "opacity-0"
-        } ${hover && hoverLoaded ? "group-hover:opacity-0" : ""}`}
+        } ${hover ? "group-hover:opacity-0" : ""}`}
       />
 
       {hover ? (
@@ -110,8 +111,8 @@ function ProgressiveImage({
           loading="lazy"
           decoding="async"
           onLoad={() => setHoverLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-300 opacity-0 ${
-            hoverLoaded ? "group-hover:opacity-100" : ""
+          className={`product-hover-crossfade absolute inset-0 w-full h-full object-cover pointer-events-none opacity-0 group-hover:opacity-100 ${
+            hoverLoaded ? "" : ""
           }`}
         />
       ) : null}
@@ -208,13 +209,18 @@ function WatchesCatalogContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // URL-driven initial category / specification filter
+  // URL-driven initial category / specification / gender filter
   const urlCategory = searchParams.get("category") || "all";
   const urlFilter = searchParams.get("filter") || "";
+  const urlGender = searchParams.get("gender") || "";
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
+  const [selectedGenders, setSelectedGenders] = useState<string[]>(() =>
+    urlGender && ["Men", "Women", "Unisex"].includes(urlGender)
+      ? [urlGender]
+      : [],
+  );
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([
     0,
@@ -261,12 +267,24 @@ function WatchesCatalogContent() {
     return () => clearTimeout(handler);
   }, [priceRange]);
 
-  // Synchronize category + specification filter with URL changes
+  // Synchronize category + specification + gender filters with URL changes
   useEffect(() => {
     const category = searchParams.get("category") || "all";
     const filter = searchParams.get("filter") || "";
+    const gender = searchParams.get("gender") || "";
     setActiveCategory(category);
     setActiveFilter(filter);
+    if (gender && ["Men", "Women", "Unisex"].includes(gender)) {
+      setSelectedGenders([gender]);
+    }
+    // Always land at top when arriving with gender / filter query (For Him / For Her)
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const t = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
+    return () => clearTimeout(t);
   }, [searchParams]);
 
   const filterKey = [
@@ -323,6 +341,7 @@ function WatchesCatalogContent() {
       setPage(cacheFresh.page);
       setLoading(false);
       setLoadingMore(false);
+      signalPageReady();
     } else {
       setPage(1);
       setProducts([]);
@@ -346,10 +365,12 @@ function WatchesCatalogContent() {
           page: 1,
           at: Date.now(),
         });
+        signalPageReady();
       } catch (err) {
         console.error("Failed to load watches:", err);
         if (!cancelled && gen === fetchGenRef.current) {
           setLoading(false);
+          signalPageReady();
         }
       }
     };
@@ -407,21 +428,18 @@ function WatchesCatalogContent() {
     setPriceRange([0, DEFAULT_PRICE_MAX]);
     setActiveFilter("");
     setActiveCategory("all");
-    router.push("/watches", { scroll: false });
+    router.push("/watches");
   };
 
   const clearCatalogFilter = () => {
     setActiveFilter("");
-    router.push(buildWatchesUrl({ filter: null }), { scroll: false });
+    router.push(buildWatchesUrl({ filter: null }));
   };
 
   const setCatalogFilter = (slug: string) => {
     const next = activeFilter === slug ? "" : slug;
     setActiveFilter(next);
-    router.push(
-      buildWatchesUrl({ filter: next || null }),
-      { scroll: false },
-    );
+    router.push(buildWatchesUrl({ filter: next || null }));
   };
 
   const filterLabel = getCatalogFilterLabel(activeFilter);
@@ -452,13 +470,6 @@ function WatchesCatalogContent() {
 
   const clearPrice = () => setPriceRange([0, DEFAULT_PRICE_MAX]);
 
-  // Quick categories pills
-  const categoriesList = [
-    { id: "all", label: "All Watches" },
-    { id: "new", label: "New Arrivals" },
-    { id: "recommended", label: "Best Sellers" },
-    { id: "related", label: "Premium Collections" },
-  ];
 
   // Helper to clean price format for display
   const formatPrice = (priceVal: number) => {
@@ -518,52 +529,27 @@ function WatchesCatalogContent() {
 
       <main className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Top bar categories */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-6 mb-8">
-          <div className="flex flex-wrap gap-2">
-            {categoriesList.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setActiveCategory(cat.id);
-                  setActiveFilter("");
-                  router.push(
-                    buildWatchesUrl({ category: cat.id, filter: null }),
-                    { scroll: false },
-                  );
-                }}
-                className={`px-5 py-2.5 rounded-full text-xs font-semibold tracking-wider transition-all duration-300 ${
-                  activeCategory === cat.id
-                    ? "bg-black text-white shadow-md"
-                    : "bg-white text-gray-700 border border-gray-200 hover:border-black"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center justify-between md:justify-end gap-4 border-b border-gray-200 pb-6 mb-8">
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="lg:hidden flex items-center gap-2 bg-white px-4 py-2 border border-gray-200 rounded-md text-xs font-bold tracking-wider hover:border-black transition"
+          >
+            <LucideSlidersHorizontal className="h-4 w-4" />
+            Filters
+          </button>
 
-          <div className="flex items-center justify-between md:justify-end gap-4">
-            <button
-              onClick={() => setMobileSidebarOpen(true)}
-              className="lg:hidden flex items-center gap-2 bg-white px-4 py-2 border border-gray-200 rounded-md text-xs font-bold tracking-wider hover:border-black transition"
+          {/* Sort Select */}
+          <div className="flex items-center gap-2 bg-white px-3 py-2 border border-gray-200 rounded-md">
+            <span className="text-xs text-gray-500 font-medium">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="text-xs font-bold bg-transparent outline-none cursor-pointer text-gray-800"
             >
-              <LucideSlidersHorizontal className="h-4 w-4" />
-              Filters
-            </button>
-
-            {/* Sort Select */}
-            <div className="flex items-center gap-2 bg-white px-3 py-2 border border-gray-200 rounded-md">
-              <span className="text-xs text-gray-500 font-medium">Sort:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="text-xs font-bold bg-transparent outline-none cursor-pointer text-gray-800"
-              >
-                <option value="newest">Newest</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-              </select>
-            </div>
+              <option value="newest">Newest</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+            </select>
           </div>
         </div>
 
@@ -754,13 +740,9 @@ function WatchesCatalogContent() {
               )}
             </div>
 
-            {/* Progressive grid: skeletons first, then products as batches arrive */}
+            {/* No skeleton flash — Timect preloader covers until first batch is ready */}
             {loading && products.length === 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                  <ProductCardSkeleton key={`sk-${i}`} index={i} />
-                ))}
-              </div>
+              <div className="min-h-[320px] bg-transparent" aria-busy="true" />
             ) : !loading && products.length === 0 ? (
               <div className="min-h-[400px] flex flex-col items-center justify-center bg-white rounded-2xl border border-gray-200 p-8 text-center">
                 <p className="text-gray-500 font-medium mb-4">
@@ -996,20 +978,7 @@ function WatchesCatalogContent() {
 
 export default function WatchesCatalogPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-slate-50">
-          <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="h-10 w-full max-w-md bg-white border border-gray-200 rounded-full mb-8 animate-pulse" />
-            <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:ml-[25%]">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <ProductCardSkeleton key={i} index={i} />
-              ))}
-            </div>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen bg-white" aria-busy="true" />}>
       <WatchesCatalogContent />
     </Suspense>
   );

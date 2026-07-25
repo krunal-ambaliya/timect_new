@@ -254,14 +254,40 @@ export async function getCatalogCards(filters: {
     const limit = pageSize + 1; // +1 to detect hasMore without COUNT
 
     const catalogFilter = getCatalogFilter(filters.filter);
-    const simplePath =
+    const noExtraFilters =
       !filters.search?.trim() &&
-      !(filters.genders && filters.genders.length) &&
       !(filters.brands && filters.brands.length) &&
       !catalogFilter &&
       !(filters.spec || "").trim() &&
       (filters.priceMin === undefined || filters.priceMin <= 0) &&
       (filters.priceMax === undefined || filters.priceMax >= 250000);
+
+    const genders = (filters.genders || []).filter(Boolean);
+    const singleGender =
+      genders.length === 1 &&
+      ["Men", "Women", "Unisex"].includes(genders[0]);
+
+    // Gender-only path (For Him / For Her) — lean SQL, no full-table JS scan
+    if (noExtraFilters && singleGender && (!filters.category || filters.category === "all")) {
+      const g = genders[0];
+      const rows = await sql`
+        SELECT id, slug, name, title, price, image, hover_image,
+               brand, collection, tag, code, gender, rating, is_main_product
+        FROM products
+        WHERE gender = ${g}
+        ORDER BY id DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+      const hasMore = rows.length > pageSize;
+      const pageRows = hasMore ? rows.slice(0, pageSize) : rows;
+      return {
+        products: pageRows.map(mapRowToCatalogCard),
+        total: hasMore ? offset + pageRows.length + 1 : offset + pageRows.length,
+        hasMore,
+      };
+    }
+
+    const simplePath = noExtraFilters && genders.length === 0;
 
     if (simplePath) {
       const cat = filters.category || "all";

@@ -12,6 +12,7 @@ const support = [
 
 const company = [
   { label: "About Us", href: "/about" },
+  { label: "Corporate Gifting", href: "/corporate-gifting" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms & Conditions", href: "/terms" },
 ];

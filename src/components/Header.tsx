@@ -4,22 +4,23 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 
+const NAV_LINKS = [
+  { href: '/about', label: 'About Us' },
+  { href: '/corporate-gifting', label: 'Corporate Gifting' },
+  { href: '/watches', label: 'Watches' },
+  { href: '/contact', label: 'Contact' },
+] as const;
+
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 50);
     };
 
     window.addEventListener('scroll', handleScroll);
-    
-    // Call handler once on mount to capture initial scroll position
     handleScroll();
 
     return () => {
@@ -39,21 +40,13 @@ export default function Header() {
             />
           </Link>
           <nav className="hidden md:flex gap-10 text-[12px] tracked-sm">
-            <Link href="/watches" className="nav-link">
-              Collections
-            </Link>
-            <Link href="/watches?category=new" className="nav-link">
-              New Arrivals
-            </Link>
-            <Link href="/watches?category=recommended" className="nav-link">
-              Best Sellers
-            </Link>
-            <Link href="/contact" className="nav-link">
-              Contact
-            </Link>
+            {NAV_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className="nav-link">
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
-          {/* Hamburger button for mobile */}
           <button
             onClick={() => setMenuOpen(true)}
             className="md:hidden p-2 text-gray-700 hover:text-black transition cursor-pointer"
@@ -64,10 +57,11 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Navigation Overlay */}
-      <div 
+      <div
         className={`md:hidden fixed inset-0 bg-white z-[9999] flex flex-col p-8 transition-all duration-200 ease-in-out ${
-          menuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'
+          menuOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 -translate-y-4 pointer-events-none'
         }`}
       >
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
@@ -87,37 +81,18 @@ export default function Header() {
           </button>
         </div>
         <nav className="flex flex-col gap-6 text-sm font-bold tracking-wider uppercase text-gray-800">
-          <Link 
-            href="/watches" 
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-black pb-3 border-b border-gray-100"
-          >
-            Collections
-          </Link>
-          <Link 
-            href="/watches?category=new" 
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-black pb-3 border-b border-gray-100"
-          >
-            New Arrivals
-          </Link>
-          <Link 
-            href="/watches?category=recommended" 
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-black pb-3 border-b border-gray-100"
-          >
-            Best Sellers
-          </Link>
-          <Link 
-            href="/contact" 
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-black pb-3 border-b border-gray-100"
-          >
-            Contact
-          </Link>
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="hover:text-black pb-3 border-b border-gray-100"
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
       </div>
     </>
   );
 }
-

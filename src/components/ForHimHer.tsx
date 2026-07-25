@@ -1,11 +1,43 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+function scrollWindowToTop() {
+  if (typeof window === "undefined") return;
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
 
 export default function ForHimHer() {
+  const router = useRouter();
+
+  const goToGender = (gender: "Men" | "Women") => (e: React.MouseEvent) => {
+    e.preventDefault();
+    scrollWindowToTop();
+    // Persist so the destination page also lands at top even if Lenis/browser restore scroll
+    try {
+      sessionStorage.setItem("timect:scroll-top", "1");
+    } catch {
+      /* ignore */
+    }
+    router.push(`/watches?gender=${gender}`);
+    // Next paint after navigation often restores scroll — force again
+    requestAnimationFrame(() => {
+      scrollWindowToTop();
+      setTimeout(scrollWindowToTop, 50);
+      setTimeout(scrollWindowToTop, 200);
+      setTimeout(scrollWindowToTop, 500);
+    });
+  };
+
   return (
     <section className="max-w-[1400px] mx-auto px-8 pb-16">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link
-          href="/watches?filter=him"
+          href="/watches?gender=Men"
+          onClick={goToGender("Men")}
           className="relative h-[420px] flex items-end justify-start p-8 group cursor-pointer"
           style={{ background: "linear-gradient(160deg,#d9d9d9,#bbb)" }}
         >
@@ -22,7 +54,8 @@ export default function ForHimHer() {
           </div>
         </Link>
         <Link
-          href="/watches?filter=her"
+          href="/watches?gender=Women"
+          onClick={goToGender("Women")}
           className="relative h-[420px] flex items-end justify-start p-8 group cursor-pointer"
           style={{ background: "linear-gradient(160deg,#2a2a2a,#000)" }}
         >

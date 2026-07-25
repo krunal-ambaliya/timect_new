@@ -134,13 +134,10 @@ export default function NewArrivals({ products: initialProducts }: { products?: 
 
   return (
     <section className="max-w-[1400px] mx-auto px-4 md:px-8 py-16">
-      <div className="flex justify-center gap-12 mb-12">
-        <button className="text-[14px] tracking-widest border-b-2 border-black pb-2 font-medium">
+      <div className="flex justify-center mb-12">
+        <h2 className="text-[14px] tracking-widest border-b-2 border-black pb-2 font-medium">
           NEW ARRIVALS
-        </button>
-        <button className="text-[14px] tracking-widest text-gray-400 pb-2 hover:text-black transition-colors">
-          BEST SELLER
-        </button>
+        </h2>
       </div>
 
       <div className="relative group/slider">
@@ -170,12 +167,12 @@ export default function NewArrivals({ products: initialProducts }: { products?: 
                     <img
                       src={product.image || ""}
                       alt={product.name || ""}
-                      className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 group-hover/card:opacity-0 pointer-events-none"
+                      className="product-hover-crossfade absolute inset-0 w-full h-full object-contain group-hover/card:opacity-0 pointer-events-none"
                     />
                     <img
                       src={product.hoverImage}
                       alt={`${product.name || ""} hover`}
-                      className="absolute inset-0 rounded-lg  w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover/card:opacity-100 pointer-events-none"
+                      className="product-hover-crossfade absolute inset-0 rounded-lg w-full h-full object-cover opacity-0 group-hover/card:opacity-100 pointer-events-none"
                     />
                   </>
                 ) : (
@@ -238,12 +235,14 @@ export default function NewArrivals({ products: initialProducts }: { products?: 
 
         <div className="flex justify-center mt-12">
           <Button
+            type="button"
             bgColor="#fff"
             textColor="#000"
             borderColor="#222"
             hoverBgColor="#000000"
             hoverTextColor="#ffffff"
             className="text-[12px] tracking-widest px-10 py-3 font-medium cursor-pointer"
+            onClick={() => router.push("/watches?category=new")}
           >
             VIEW ALL
           </Button>

@@ -60,12 +60,12 @@ export default function Recommended({ products: initialProducts }: { products?: 
                     <img
                       src={product.image || ""}
                       alt={product.name || ""}
-                      className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 group-hover:opacity-0 pointer-events-none"
+                      className="product-hover-crossfade absolute inset-0 w-full h-full object-contain group-hover:opacity-0 pointer-events-none"
                     />
                     <img
                       src={product.hoverImage}
                       alt={`${product.name || ""} hover`}
-                      className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
+                      className="product-hover-crossfade absolute inset-0 w-full h-full object-contain opacity-0 group-hover:opacity-100 pointer-events-none"
                     />
                   </>
                 ) : (
@@ -91,12 +91,14 @@ export default function Recommended({ products: initialProducts }: { products?: 
         <div className="flex justify-center mt-12 border-t border-gray-200 pt-12 relative">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4">
             <Button
+              type="button"
               bgColor="#fff"
               textColor="#000"
               borderColor="#222"
               hoverBgColor="#000000"
               hoverTextColor="#ffffff"
               className="text-[12px] tracking-widest px-10 py-3 font-medium cursor-pointer relative z-20"
+              onClick={() => router.push("/watches")}
             >
               VIEW ALL WATCHES
             </Button>
