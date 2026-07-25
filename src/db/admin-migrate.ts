@@ -10,7 +10,6 @@
 import fs from "fs";
 import path from "path";
 import { neon } from "@neondatabase/serverless";
-import bcrypt from "bcryptjs";
 
 for (const envFile of [".env.local", ".env"]) {
   const envPath = path.resolve(process.cwd(), envFile);
@@ -109,31 +108,6 @@ async function main() {
     );
   `;
   console.log("✓ audit_logs");
-
-  // Seed default admin if none
-  const existing = await sql`SELECT id FROM admin_users LIMIT 1`;
-  if (existing.length === 0) {
-    const email =
-      process.env.ADMIN_SEED_EMAIL || "admin@timect.com";
-    const password =
-      process.env.ADMIN_SEED_PASSWORD || "TimectAdmin!2026";
-    const fullName = process.env.ADMIN_SEED_NAME || "Timect Super Admin";
-    const hash = await bcrypt.hash(password, 12);
-
-    await sql`
-      INSERT INTO admin_users (full_name, email, password_hash, role, is_active)
-      VALUES (${fullName}, ${email.toLowerCase()}, ${hash}, 'super_admin', TRUE)
-    `;
-    console.log("");
-    console.log("────────────────────────────────────────");
-    console.log("Seeded default super admin:");
-    console.log(`  Email:    ${email}`);
-    console.log(`  Password: ${password}`);
-    console.log("  Change this password after first login.");
-    console.log("────────────────────────────────────────");
-  } else {
-    console.log("Admin users already present — skip seed.");
-  }
 
   // Seed default CMS settings from static catalog data if empty
   const shopSetting =
