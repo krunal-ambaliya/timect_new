@@ -254,16 +254,45 @@ export default function ProductTable({
           <TableSkeleton />
         ) : products.length === 0 ? (
           <EmptyState
-            title="No products found"
-            description="Try adjusting filters or create your first product."
+            title={
+              filters.search?.trim()
+                ? "No products match your search"
+                : "No products found"
+            }
+            description={
+              filters.search?.trim()
+                ? `Nothing matched “${filters.search.trim()}”. Clear search or adjust filters.`
+                : "Try adjusting filters or create your first product."
+            }
             action={
-              <Link
-                href="/admin/products/new"
-                className="admin-btn admin-btn-primary"
-              >
-                <Plus className="h-4 w-4" />
-                Add product
-              </Link>
+              filters.search?.trim() ||
+              (filters.flag && filters.flag !== "all") ||
+              filters.gender ? (
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-primary"
+                  onClick={() => {
+                    window.dispatchEvent(new Event("admin:clear-search"));
+                    setFilters((f) => ({
+                      ...f,
+                      search: "",
+                      flag: "all",
+                      gender: undefined,
+                      page: 1,
+                    }));
+                  }}
+                >
+                  Clear filters
+                </button>
+              ) : (
+                <Link
+                  href="/admin/products/new"
+                  className="admin-btn admin-btn-primary"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add product
+                </Link>
+              )
             }
           />
         ) : (

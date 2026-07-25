@@ -53,11 +53,28 @@
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.admin-input::placeholder {
+  color: var(--admin-muted);
+  opacity: 1;
 }
 
 .admin-input:focus {
   border-color: var(--admin-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-accent) 18%, transparent);
+}
+
+/* Kill native search clear / decoration that clashes with our icon */
+.admin-input[type="search"]::-webkit-search-decoration,
+.admin-input[type="search"]::-webkit-search-cancel-button,
+.admin-input[type="search"]::-webkit-search-results-button,
+.admin-input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
 }
 
 .admin-label {

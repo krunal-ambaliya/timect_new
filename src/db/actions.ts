@@ -2,6 +2,7 @@
 
 import { sql } from "./neon";
 import { getCatalogFilter } from "@/data/categoryFilters";
+import { formatPrice } from "@/lib/price";
 import {
   catalogFilterSqlKeywords,
   productMatchesCatalogFilter,
@@ -11,6 +12,7 @@ export interface Variant {
   id: string;
   name: string;
   image: string;
+  slug?: string;
 }
 
 export interface SpecificationItem {
@@ -66,7 +68,7 @@ function mapRowToProduct(row: any): Product {
     id: row.id,
     slug: row.slug,
     name: row.name || undefined,
-    price: row.price,
+    price: formatPrice(row.price),
     image: row.image || undefined,
     isMainProduct: row.is_main_product,
     isNewArrival: row.is_new_arrival,
@@ -89,7 +91,11 @@ function mapRowToProduct(row: any): Product {
     collection: row.collection || undefined,
     description: row.description || undefined,
     gender: row.gender || undefined,
-    rating: row.rating ? parseFloat(row.rating) : undefined,
+    rating: (() => {
+      if (row.rating == null || row.rating === "") return undefined;
+      const n = parseFloat(String(row.rating));
+      return Number.isFinite(n) ? n : undefined;
+    })(),
     hoverImage: row.hover_image || undefined,
   };
 }
@@ -181,6 +187,215 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
 }
 
+/** Lean card fields only — no variants/specs/images[] (keeps catalog payloads tiny & fast). */
+export type CatalogCard = {
+  id: number;
+  slug: string;
+  name?: string;
+  title?: string;
+  price: string;
+  image?: string;
+  hoverImage?: string;
+  brand?: string;
+  collection?: string;
+  tag?: string;
+  code?: string;
+  gender?: string;
+  rating?: number;
+  isMainProduct: boolean;
+};
+
+function mapRowToCatalogCard(row: any): CatalogCard {
+  return {
+    id: row.id,
+    slug: row.slug || "",
+    name: row.name || undefined,
+    title: row.title || undefined,
+    price: formatPrice(row.price),
+    image: row.image || undefined,
+    hoverImage: row.hover_image || undefined,
+    brand: row.brand || undefined,
+    collection: row.collection || undefined,
+    tag: row.tag || undefined,
+    code: row.code || undefined,
+    gender: row.gender || undefined,
+    rating: (() => {
+      if (row.rating == null || row.rating === "") return undefined;
+      const n = parseFloat(String(row.rating));
+      return Number.isFinite(n) ? n : undefined;
+    })(),
+    isMainProduct: Boolean(row.is_main_product),
+  };
+}
+
+/**
+ * Fast catalog listing for the watches page.
+ * - Lean columns only (text + thumbnail URL)
+ * - pageSize+1 trick → no blocking COUNT round-trip
+ * - Single query for the common category/sort path
+ */
+export async function getCatalogCards(filters: {
+  search?: string;
+  genders?: string[];
+  brands?: string[];
+  priceMin?: number;
+  priceMax?: number;
+  category?: string;
+  filter?: string;
+  spec?: string;
+  sortBy?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ products: CatalogCard[]; total: number; hasMore: boolean }> {
+  try {
+    const page = Math.max(1, filters.page || 1);
+    const pageSize = Math.min(48, Math.max(1, filters.pageSize || 9));
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize + 1; // +1 to detect hasMore without COUNT
+
+    const catalogFilter = getCatalogFilter(filters.filter);
+    const simplePath =
+      !filters.search?.trim() &&
+      !(filters.genders && filters.genders.length) &&
+      !(filters.brands && filters.brands.length) &&
+      !catalogFilter &&
+      !(filters.spec || "").trim() &&
+      (filters.priceMin === undefined || filters.priceMin <= 0) &&
+      (filters.priceMax === undefined || filters.priceMax >= 250000);
+
+    if (simplePath) {
+      const cat = filters.category || "all";
+      const sortBy = filters.sortBy || "newest";
+      let rows: any[];
+
+      // Prefer simple id sort (index-friendly). Price sort only when requested.
+      if (cat === "new") {
+        if (sortBy === "price-asc") {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_new_arrival = TRUE
+            ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC
+            LIMIT ${limit} OFFSET ${offset}`;
+        } else if (sortBy === "price-desc") {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_new_arrival = TRUE
+            ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC
+            LIMIT ${limit} OFFSET ${offset}`;
+        } else {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_new_arrival = TRUE
+            ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+        }
+      } else if (cat === "recommended") {
+        if (sortBy === "price-asc") {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_recommended = TRUE
+            ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC
+            LIMIT ${limit} OFFSET ${offset}`;
+        } else if (sortBy === "price-desc") {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_recommended = TRUE
+            ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC
+            LIMIT ${limit} OFFSET ${offset}`;
+        } else {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_recommended = TRUE
+            ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+        }
+      } else if (cat === "related") {
+        if (sortBy === "price-asc") {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_related = TRUE
+            ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC
+            LIMIT ${limit} OFFSET ${offset}`;
+        } else if (sortBy === "price-desc") {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_related = TRUE
+            ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC
+            LIMIT ${limit} OFFSET ${offset}`;
+        } else {
+          rows = await sql`
+            SELECT id, slug, name, title, price, image, hover_image,
+                   brand, collection, tag, code, gender, rating, is_main_product
+            FROM products WHERE is_related = TRUE
+            ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+        }
+      } else if (sortBy === "price-asc") {
+        rows = await sql`
+          SELECT id, slug, name, title, price, image, hover_image,
+                 brand, collection, tag, code, gender, rating, is_main_product
+          FROM products
+          ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC
+          LIMIT ${limit} OFFSET ${offset}`;
+      } else if (sortBy === "price-desc") {
+        rows = await sql`
+          SELECT id, slug, name, title, price, image, hover_image,
+                 brand, collection, tag, code, gender, rating, is_main_product
+          FROM products
+          ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC
+          LIMIT ${limit} OFFSET ${offset}`;
+      } else {
+        rows = await sql`
+          SELECT id, slug, name, title, price, image, hover_image,
+                 brand, collection, tag, code, gender, rating, is_main_product
+          FROM products
+          ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+      }
+
+      const hasMore = rows.length > pageSize;
+      const pageRows = hasMore ? rows.slice(0, pageSize) : rows;
+      const products = pageRows.map(mapRowToCatalogCard);
+      // Exact total only when we know the end; otherwise "at least" so UI can show progress
+      const total = hasMore
+        ? offset + products.length + 1
+        : offset + products.length;
+
+      return { products, total, hasMore };
+    }
+
+    // Complex filters: reuse full filter pipeline, then project to cards
+    const full = await getFilteredProducts(filters);
+    return {
+      products: full.products.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        title: p.title,
+        price: p.price,
+        image: p.image,
+        hoverImage: p.hoverImage,
+        brand: p.brand,
+        collection: p.collection,
+        tag: p.tag,
+        code: p.code,
+        gender: p.gender,
+        rating: p.rating,
+        isMainProduct: p.isMainProduct,
+      })),
+      total: full.total,
+      hasMore: full.hasMore,
+    };
+  } catch (error) {
+    console.error("Error getCatalogCards:", error);
+    return { products: [], total: 0, hasMore: false };
+  }
+}
+
 export async function getFilteredProducts(filters: {
   search?: string;
   genders?: string[];
@@ -212,8 +427,69 @@ export async function getFilteredProducts(filters: {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    // PostgreSQL JSONB pre-filter: shrink candidate set using ILIKE on specs + text fields.
-    // Precise category matching still runs in JS (supports section/label structure).
+    const page = Math.max(1, filters.page || 1);
+    const pageSize = Math.min(48, Math.max(1, filters.pageSize || 20));
+    const offset = (page - 1) * pageSize;
+
+    // Fast path: only category pill + sort (no search / brands / specs / gender / price)
+    // → SQL LIMIT so the first batch paints without scanning the whole table in JS.
+    const simplePath =
+      !filters.search?.trim() &&
+      !(filters.genders && filters.genders.length) &&
+      !(filters.brands && filters.brands.length) &&
+      !catalogFilter &&
+      freeSpecKeywords.length === 0 &&
+      (filters.priceMin === undefined || filters.priceMin <= 0) &&
+      (filters.priceMax === undefined || filters.priceMax >= 250000);
+
+    if (simplePath) {
+      const cat = filters.category || "all";
+      const sortBy = filters.sortBy || "newest";
+      const limit = pageSize + 1;
+      let rows: any[];
+
+      if (cat === "new") {
+        if (sortBy === "price-asc") {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_new_arrival = TRUE ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+        } else if (sortBy === "price-desc") {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_new_arrival = TRUE ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+        } else {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_new_arrival = TRUE ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+        }
+      } else if (cat === "recommended") {
+        if (sortBy === "price-asc") {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_recommended = TRUE ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+        } else if (sortBy === "price-desc") {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_recommended = TRUE ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+        } else {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_recommended = TRUE ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+        }
+      } else if (cat === "related") {
+        if (sortBy === "price-asc") {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_related = TRUE ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+        } else if (sortBy === "price-desc") {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_related = TRUE ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+        } else {
+          rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products WHERE is_related = TRUE ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+        }
+      } else if (sortBy === "price-asc") {
+        rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric ASC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+      } else if (sortBy === "price-desc") {
+        rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products ORDER BY NULLIF(regexp_replace(price, '[^0-9.]', '', 'g'), '')::numeric DESC NULLS LAST, id DESC LIMIT ${limit} OFFSET ${offset}`;
+      } else {
+        rows = await sql`SELECT id, slug, name, title, price, image, hover_image, brand, collection, tag, code, gender, rating, is_main_product, is_new_arrival, is_recommended, is_related FROM products ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
+      }
+
+      const hasMore = rows.length > pageSize;
+      const pageRows = hasMore ? rows.slice(0, pageSize) : rows;
+      const products = pageRows.map(mapRowToProduct);
+      const total = hasMore
+        ? offset + products.length + 1
+        : offset + products.length;
+      return { products, total, hasMore };
+    }
+
+    // Complex path: PostgreSQL JSONB pre-filter, then JS refine.
     let rows;
     const prefilterKeywords = [...sqlKeywords, ...freeSpecKeywords];
 
@@ -233,10 +509,10 @@ export async function getFilteredProducts(filters: {
           OR COALESCE(description, '') ~* ${pattern}
           OR COALESCE(collection, '') ~* ${pattern}
           OR COALESCE(brand, '') ~* ${pattern}
-        ORDER BY id ASC
+        ORDER BY id DESC
       `;
     } else {
-      rows = await sql`SELECT * FROM products ORDER BY id ASC`;
+      rows = await sql`SELECT * FROM products ORDER BY id DESC`;
     }
 
     let products = rows.map(mapRowToProduct);
@@ -340,9 +616,7 @@ export async function getFilteredProducts(filters: {
     }
 
     const total = products.length;
-    const page = filters.page || 1;
-    const pageSize = filters.pageSize || 20;
-    const start = (page - 1) * pageSize;
+    const start = offset;
     const paginatedProducts = products.slice(start, start + pageSize);
 
     return {
@@ -359,5 +633,21 @@ export async function getFilteredProducts(filters: {
     };
   }
 }
+
+export async function getProductSlugByImage(imageUrl: string): Promise<string | null> {
+  try {
+    const rows = await sql`
+      SELECT slug FROM products 
+      WHERE image = ${imageUrl} OR images @> ${JSON.stringify([imageUrl])}::jsonb
+      LIMIT 1
+    `;
+    if (rows.length === 0) return null;
+    return rows[0].slug as string;
+  } catch (error) {
+    console.error("Error fetching product slug by image:", error);
+    return null;
+  }
+}
+
 
 

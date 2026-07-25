@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "@/db/neon";
-import type { Product } from "@/db/actions";
+import type { Product, Variant } from "@/db/actions";
 import {
   mapRowToProduct,
   type ProductInput,
@@ -10,6 +10,7 @@ import {
 import { slugify, uniqueSlug } from "@/admin/lib/slug";
 import { canDelete, canWrite } from "@/admin/lib/constants";
 import { requireAdminSession } from "@/admin/lib/session";
+import { formatPrice } from "@/lib/price";
 
 export type ProductListFilters = {
   search?: string;
@@ -74,7 +75,7 @@ function normalizeInput(input: ProductInput): ProductInput {
     ...input,
     name,
     title,
-    price: (input.price || "").trim(),
+    price: formatPrice(input.price),
     image: primary,
     images: images.length ? images : primary ? [primary] : [],
     sizes: (input.sizes || []).filter(Boolean),
@@ -224,6 +225,14 @@ export async function adminCreateProduct(
 
     const id = (rows[0] as { id: number }).id;
 
+    await syncBidirectionalVariants(
+      id,
+      slug,
+      data.title || data.name || "Product",
+      data.image || "",
+      data.variants || []
+    );
+
     try {
       await sql`
         INSERT INTO audit_logs (admin_user_id, action, entity_type, entity_id, meta)
@@ -297,6 +306,14 @@ export async function adminUpdateProduct(
       WHERE id = ${id}
     `;
 
+    await syncBidirectionalVariants(
+      id,
+      slug,
+      data.title || data.name || "Product",
+      data.image || "",
+      data.variants || []
+    );
+
     try {
       await sql`
         INSERT INTO audit_logs (admin_user_id, action, entity_type, entity_id)
@@ -325,6 +342,30 @@ export async function adminDeleteProduct(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const session = await assertDelete();
+
+    // Fetch slug of the product to delete first
+    const pRow = await sql`SELECT slug FROM products WHERE id = ${id} LIMIT 1`;
+    if (pRow.length > 0) {
+      const slug = pRow[0].slug as string;
+      
+      // Delete relationship from other products' variants
+      const affectedProducts = await sql`
+        SELECT id, slug, variants FROM products 
+        WHERE variants::text LIKE ${'%' + slug + '%'}
+      `;
+      for (const row of affectedProducts) {
+        const prodId = row.id as number;
+        const prodSlug = row.slug as string;
+        const rVariants = (row.variants as Variant[]) || [];
+        const updatedVariants = rVariants.filter((v) => v.slug !== slug);
+        await sql`
+          UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
+          WHERE id = ${prodId}
+        `;
+        revalidatePath(`/product/${prodSlug}`);
+      }
+    }
+
     await sql`DELETE FROM products WHERE id = ${id}`;
     try {
       await sql`
@@ -526,3 +567,112 @@ export async function adminGetDashboardStats() {
     };
   }
 }
+
+export async function adminGetAllProductsQuick(): Promise<{ slug: string; name: string; image: string }[]> {
+  await requireAdminSession();
+  try {
+    const rows = await sql`
+      SELECT slug, name, title, image FROM products 
+      ORDER BY COALESCE(name, title) ASC, id DESC
+    `;
+    return rows.map((r: any) => ({
+      slug: r.slug as string,
+      name: (r.name || r.title || "") as string,
+      image: (r.image || "") as string,
+    }));
+  } catch (error) {
+    console.error("Error adminGetAllProductsQuick:", error);
+    return [];
+  }
+}
+
+async function syncBidirectionalVariants(
+  currentProductId: number,
+  currentProductSlug: string,
+  currentProductTitle: string,
+  currentProductImage: string,
+  nextVariants: Variant[]
+) {
+  try {
+    const nextSlugs = new Set(nextVariants.map((v) => v.slug).filter(Boolean) as string[]);
+
+    // Find all products in the database that currently contain this product slug in their variants field
+    const affectedProducts = await sql`
+      SELECT id, slug, variants FROM products 
+      WHERE variants::text LIKE ${'%' + currentProductSlug + '%'}
+    `;
+
+    // 1. Process products that already reference currentProductSlug
+    for (const row of affectedProducts) {
+      const prodId = row.id as number;
+      const prodSlug = row.slug as string;
+      const rVariants = (row.variants as Variant[]) || [];
+
+      if (nextSlugs.has(prodSlug)) {
+        // This product is still linked. Make sure currentProductSlug is in its variants.
+        const hasCurrent = rVariants.some((v) => v.slug === currentProductSlug);
+        if (!hasCurrent) {
+          const updatedVariants = [
+            ...rVariants,
+            {
+              id: `v${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+              name: currentProductTitle,
+              image: currentProductImage,
+              slug: currentProductSlug,
+            },
+          ];
+          await sql`
+            UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
+            WHERE id = ${prodId}
+          `;
+          revalidatePath(`/product/${prodSlug}`);
+        }
+      } else {
+        // This product is no longer linked in nextVariants. Remove currentProductSlug from its variants.
+        const updatedVariants = rVariants.filter((v) => v.slug !== currentProductSlug);
+        await sql`
+          UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
+          WHERE id = ${prodId}
+        `;
+        revalidatePath(`/product/${prodSlug}`);
+      }
+    }
+
+    // 2. Process products in nextSlugs that do not already reference currentProductSlug (new links)
+    const affectedSlugs = new Set(affectedProducts.map((p) => p.slug as string));
+    for (const slugQ of nextSlugs) {
+      if (!affectedSlugs.has(slugQ)) {
+        // Fetch the product to see if it exists
+        const rows = await sql`
+          SELECT id, variants FROM products 
+          WHERE slug = ${slugQ} 
+          LIMIT 1
+        `;
+        if (rows.length > 0) {
+          const prodId = rows[0].id as number;
+          const qVariants = (rows[0].variants as Variant[]) || [];
+          const hasCurrent = qVariants.some((v) => v.slug === currentProductSlug);
+          if (!hasCurrent) {
+            const updatedVariants = [
+              ...qVariants,
+              {
+                id: `v${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                name: currentProductTitle,
+                image: currentProductImage,
+                slug: currentProductSlug,
+              },
+            ];
+            await sql`
+              UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
+              WHERE id = ${prodId}
+            `;
+            revalidatePath(`/product/${slugQ}`);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error syncBidirectionalVariants:", error);
+  }
+}
+

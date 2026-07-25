@@ -100,12 +100,8 @@ export default function ProductForm({
         return;
       }
       success(productId ? "Product updated" : "Product created");
-      if (!productId && "id" in res) {
-        router.push(`/admin/products/${res.id}/edit`);
-      } else {
-        router.push("/admin/products");
-        router.refresh();
-      }
+      router.push("/admin/products");
+      router.refresh();
     });
   };
 

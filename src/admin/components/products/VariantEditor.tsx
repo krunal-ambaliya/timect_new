@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { GripVertical, Plus, Trash2, ImagePlus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { GripVertical, Plus, Trash2, ImagePlus, ChevronDown, Search, X } from "lucide-react";
 import type { Variant } from "@/db/actions";
 import MediaPicker from "@/admin/components/media/MediaPicker";
+import { adminGetAllProductsQuick } from "@/admin/actions/products";
+
+interface ProductOption {
+  slug: string;
+  name: string;
+  image: string;
+}
 
 export default function VariantEditor({
   variants,
@@ -14,6 +21,23 @@ export default function VariantEditor({
 }) {
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [products, setProducts] = useState<ProductOption[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const list = await adminGetAllProductsQuick();
+        setProducts(list);
+      } catch (err) {
+        console.error("Failed to load products list for variants", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   const update = (idx: number, patch: Partial<Variant>) => {
     const next = variants.map((v, i) => (i === idx ? { ...v, ...patch } : v));
@@ -93,7 +117,7 @@ export default function VariantEditor({
                   <ImagePlus className="mx-auto h-5 w-5 text-[var(--admin-muted)]" />
                 )}
               </button>
-              <div className="min-w-[160px] flex-1">
+              <div className="min-w-[140px] flex-1">
                 <label className="admin-label">Variant name</label>
                 <input
                   className="admin-input"
@@ -102,7 +126,22 @@ export default function VariantEditor({
                   placeholder="e.g. Blue"
                 />
               </div>
-              <div className="min-w-[200px] flex-[2]">
+              <div className="min-w-[200px] flex-1">
+                <label className="admin-label">Linked Product (optional)</label>
+                <ProductSelect
+                  value={v.slug || ""}
+                  onChange={(slug, name, image) => {
+                    update(idx, {
+                      slug,
+                      name: v.name ? v.name : (name || ""),
+                      image: v.image ? v.image : (image || ""),
+                    });
+                  }}
+                  products={products}
+                  loading={loading}
+                />
+              </div>
+              <div className="min-w-[180px] flex-[1.5]">
                 <label className="admin-label">Image URL</label>
                 <input
                   className="admin-input"
@@ -132,6 +171,169 @@ export default function VariantEditor({
           setPickerFor(null);
         }}
       />
+    </div>
+  );
+}
+
+function ProductSelect({
+  value,
+  onChange,
+  products,
+  loading,
+}: {
+  value: string;
+  onChange: (slug: string, name?: string, image?: string) => void;
+  products: ProductOption[];
+  loading: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const selectedProduct = products.find((p) => p.slug === value);
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.slug.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setSearch("");
+        }}
+        className="admin-input flex items-center justify-between gap-2 text-left cursor-pointer min-h-[42px]"
+      >
+        <div className="flex items-center gap-2 overflow-hidden">
+          {selectedProduct ? (
+            <>
+              {selectedProduct.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={selectedProduct.image}
+                  alt=""
+                  className="h-6 w-6 rounded object-cover shrink-0"
+                />
+              ) : (
+                <div className="h-6 w-6 rounded bg-[var(--admin-bg)] shrink-0" />
+              )}
+              <span className="truncate text-sm font-medium">{selectedProduct.name}</span>
+            </>
+          ) : value ? (
+            <span className="truncate text-sm italic text-[var(--admin-muted)]">
+              Custom: {value}
+            </span>
+          ) : (
+            <span className="text-sm text-[var(--admin-muted)]">Select product...</span>
+          )}
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {value && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange("");
+              }}
+              className="p-0.5 hover:bg-[var(--admin-bg)] rounded text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
+              title="Clear selection"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          <ChevronDown className="h-4 w-4 text-[var(--admin-muted)]" />
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 z-50 mt-1 rounded-xl border border-[var(--admin-line)] bg-[var(--admin-surface)] p-2 shadow-lg max-h-80 overflow-hidden flex flex-col">
+          <div className="relative mb-2 shrink-0">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--admin-muted)]" />
+            <input
+              type="text"
+              className="admin-input py-1.5 text-sm"
+              style={{ paddingLeft: "2.25rem" }}
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          <div className="overflow-y-auto flex-1 max-h-56 divide-y divide-[var(--admin-line)]">
+            {search && !products.some((p) => p.slug === search) && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(search);
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-2 p-2 hover:bg-[var(--admin-accent-soft)] text-left text-xs font-semibold text-[var(--admin-accent)] transition-colors"
+              >
+                Use custom slug: &ldquo;{search}&rdquo;
+              </button>
+            )}
+            {loading ? (
+              <div className="py-3 text-center text-xs text-[var(--admin-muted)]">
+                Loading products...
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="py-3 text-center text-xs text-[var(--admin-muted)]">
+                No products found
+              </div>
+            ) : (
+              filteredProducts.map((p) => (
+                <button
+                  key={p.slug}
+                  type="button"
+                  onClick={() => {
+                    onChange(p.slug, p.name, p.image);
+                    setIsOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 p-2 hover:bg-[var(--admin-accent-soft)] text-left transition-colors"
+                >
+                  {p.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.image}
+                      alt=""
+                      className="h-8 w-8 rounded object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded bg-[var(--admin-bg)] shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate text-[var(--admin-ink)]">
+                      {p.name}
+                    </div>
+                    <div className="text-xs text-[var(--admin-muted)] truncate">
+                      {p.slug}
+                    </div>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

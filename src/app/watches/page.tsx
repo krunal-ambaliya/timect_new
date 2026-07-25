@@ -1,15 +1,19 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-import { getFilteredProducts, Product } from "@/db/actions";
+import { getCatalogCards, type CatalogCard } from "@/db/actions";
 import {
   getCatalogFilterLabel,
   SHOP_BY_CATEGORY,
 } from "@/data/categoryFilters";
+import {
+  catalogThumbUrl,
+  CATALOG_FALLBACK_IMAGE,
+} from "@/lib/catalog-image";
 import {
   LucideSearch,
   LucideSlidersHorizontal,
@@ -18,6 +22,187 @@ import {
 } from "lucide-react";
 
 const DEFAULT_PRICE_MAX = 250000;
+/** Page size — first batch paints as soon as text data returns */
+const PAGE_SIZE = 9;
+
+/** Session cache so revisiting filters feels instant */
+const catalogSessionCache = new Map<
+  string,
+  { products: CatalogCard[]; hasMore: boolean; page: number; at: number }
+>();
+const CACHE_TTL_MS = 60_000;
+
+function ProductCardSkeleton({ index = 0 }: { index?: number }) {
+  return (
+    <div
+      className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col p-4 min-w-0 animate-pulse"
+      style={{ animationDelay: `${index * 40}ms` }}
+      aria-hidden
+    >
+      <div className="aspect-square w-full bg-slate-100 rounded-xl mb-4" />
+      <div className="space-y-2 px-1">
+        <div className="flex justify-between">
+          <div className="h-3 w-16 bg-slate-100 rounded" />
+          <div className="h-3 w-8 bg-slate-100 rounded" />
+        </div>
+        <div className="h-3.5 w-3/4 bg-slate-100 rounded" />
+        <div className="h-3 w-1/2 bg-slate-100 rounded" />
+        <div className="flex justify-between items-center pt-4 mt-2">
+          <div className="h-4 w-20 bg-slate-100 rounded" />
+          <div className="h-9 w-24 bg-slate-100 rounded-lg" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Image loads independently — card text is never blocked on the photo. */
+function ProgressiveImage({
+  src,
+  hoverSrc,
+  alt,
+  priority = false,
+}: {
+  src?: string;
+  hoverSrc?: string;
+  alt: string;
+  priority?: boolean;
+}) {
+  const primary = catalogThumbUrl(src);
+  const hover = hoverSrc ? catalogThumbUrl(hoverSrc, 480) : "";
+  const [primaryLoaded, setPrimaryLoaded] = useState(false);
+  const [hoverLoaded, setHoverLoaded] = useState(false);
+
+  return (
+    <div className="relative aspect-square w-full bg-slate-100 rounded-xl mb-4 overflow-hidden">
+      {/* Soft placeholder until the photo decodes */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 transition-opacity duration-300 ${
+          primaryLoaded ? "opacity-0" : "opacity-100"
+        }`}
+        aria-hidden
+      />
+
+      <img
+        src={primary}
+        alt={alt}
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        fetchPriority={priority ? "high" : "auto"}
+        onLoad={() => setPrimaryLoaded(true)}
+        onError={(e) => {
+          const el = e.currentTarget;
+          if (el.src !== CATALOG_FALLBACK_IMAGE) {
+            el.src = CATALOG_FALLBACK_IMAGE;
+          } else {
+            setPrimaryLoaded(true);
+          }
+        }}
+        className={`absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-300 ${
+          primaryLoaded ? "opacity-100" : "opacity-0"
+        } ${hover && hoverLoaded ? "group-hover:opacity-0" : ""}`}
+      />
+
+      {hover ? (
+        <img
+          src={hover}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setHoverLoaded(true)}
+          className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-300 opacity-0 ${
+            hoverLoaded ? "group-hover:opacity-100" : ""
+          }`}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function ProductCard({
+  product,
+  index,
+  onOpen,
+}: {
+  product: CatalogCard;
+  index: number;
+  onOpen: (slug: string) => void;
+}) {
+  const displayBrand = product.brand || product.collection || "Seiko";
+  const displayName = product.name || product.title || "Exclusive Watch";
+
+  return (
+    <div
+      onClick={() => onOpen(product.slug)}
+      className="product-card-enter group bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col p-4 cursor-pointer hover:shadow-xl transition-shadow duration-300 min-w-0"
+      style={{ animationDelay: `${Math.min(index, 12) * 30}ms` }}
+    >
+      <div className="relative">
+        {product.tag && (
+          <span className="absolute top-3 left-3 bg-black text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
+            {product.tag}
+          </span>
+        )}
+        {product.isMainProduct && !product.tag && (
+          <span className="absolute top-3 left-3 bg-[#0c2c42] text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
+            EXCLUSIVE
+          </span>
+        )}
+        <ProgressiveImage
+          src={product.image}
+          hoverSrc={product.hoverImage}
+          alt={displayName}
+          priority={index < 3}
+        />
+      </div>
+
+      {/* Text always renders immediately — never waits on images */}
+      <div className="flex-grow flex flex-col space-y-1 px-1">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase truncate max-w-[70%]">
+            {displayBrand}
+          </span>
+          <div className="flex items-center gap-1 text-amber-500 shrink-0">
+            <LucideStar className="h-3 w-3 fill-amber-500" />
+            <span className="text-[10px] font-bold text-gray-600">
+              {product.rating || "4.5"}
+            </span>
+          </div>
+        </div>
+
+        <h3
+          className="text-xs font-bold text-gray-900 uppercase truncate leading-tight mt-1"
+          title={displayName}
+        >
+          {displayName}
+        </h3>
+
+        {product.code && (
+          <span className="text-[10px] font-medium text-gray-400">
+            Ref: {product.code}
+          </span>
+        )}
+        {product.gender && (
+          <span className="text-[9px] font-bold tracking-wider text-gray-400 uppercase">
+            {product.gender}
+          </span>
+        )}
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 mt-auto">
+          <span className="text-sm font-extrabold text-black">
+            {product.price}
+          </span>
+          <button
+            type="button"
+            className="bg-black hover:bg-neutral-800 text-white rounded-lg px-3 py-2.5 text-[10px] font-extrabold tracking-wider transition-all duration-300 w-full sm:w-auto text-center cursor-pointer"
+          >
+            VIEW DETAILS
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function WatchesCatalogContent() {
   const searchParams = useSearchParams();
@@ -48,12 +233,14 @@ function WatchesCatalogContent() {
   // Pagination & Results status state
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
 
-  // Products state
-  const [products, setProducts] = useState<Product[]>([]);
+  // Products state — text paints as soon as the lean API returns
+  const [products, setProducts] = useState<CatalogCard[]>([]);
+  /** True only while waiting for the very first batch of a new filter set */
   const [loading, setLoading] = useState(true);
+  /** True while streaming extra pages or user Load more */
   const [loadingMore, setLoadingMore] = useState(false);
+  const fetchGenRef = useRef(0);
 
   // Mobile sidebar visibility
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -82,65 +269,118 @@ function WatchesCatalogContent() {
     setActiveFilter(filter);
   }, [searchParams]);
 
-  // Reset page to 1 whenever any filter parameter changes
-  useEffect(() => {
-    setPage(1);
-  }, [
+  const filterKey = [
     debouncedSearchQuery,
-    selectedGenders,
-    selectedBrands,
-    debouncedPriceRange,
+    selectedGenders.join(","),
+    selectedBrands.join(","),
+    debouncedPriceRange[0],
+    debouncedPriceRange[1],
     activeCategory,
     activeFilter,
     sortBy,
-  ]);
+  ].join("|");
 
-  // Fetch products
+  const fetchPage = useCallback(
+    async (pageNum: number) => {
+      // Lean catalog payload: text + image URLs only (images load in the browser)
+      return getCatalogCards({
+        search: debouncedSearchQuery,
+        genders: selectedGenders,
+        brands: selectedBrands,
+        priceMin: debouncedPriceRange[0],
+        priceMax: debouncedPriceRange[1],
+        category: activeCategory,
+        filter: activeFilter || undefined,
+        sortBy: sortBy,
+        page: pageNum,
+        pageSize: PAGE_SIZE,
+      });
+    },
+    [
+      debouncedSearchQuery,
+      selectedGenders,
+      selectedBrands,
+      debouncedPriceRange,
+      activeCategory,
+      activeFilter,
+      sortBy,
+    ],
+  );
+
+  // Progressive UX: cache hit paints text instantly; network fills/refreshes.
+  // Images always load independently after card text is on screen.
   useEffect(() => {
-    let isMounted = true;
-    if (page === 1) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+    const gen = ++fetchGenRef.current;
+    let cancelled = false;
 
-    getFilteredProducts({
-      search: debouncedSearchQuery,
-      genders: selectedGenders,
-      brands: selectedBrands,
-      priceMin: debouncedPriceRange[0],
-      priceMax: debouncedPriceRange[1],
-      category: activeCategory,
-      filter: activeFilter || undefined,
-      sortBy: sortBy,
-      page: page,
-      pageSize: 20,
-    }).then((data) => {
-      if (!isMounted) return;
-      if (page === 1) {
-        setProducts(data.products);
-      } else {
-        setProducts((prev) => [...prev, ...data.products]);
-      }
-      setTotalCount(data.total);
-      setHasMore(data.hasMore);
+    const cached = catalogSessionCache.get(filterKey);
+    const cacheFresh =
+      cached && Date.now() - cached.at < CACHE_TTL_MS ? cached : null;
+
+    if (cacheFresh) {
+      setProducts(cacheFresh.products);
+      setHasMore(cacheFresh.hasMore);
+      setPage(cacheFresh.page);
       setLoading(false);
       setLoadingMore(false);
-    });
+    } else {
+      setPage(1);
+      setProducts([]);
+      setHasMore(false);
+      setLoading(true);
+      setLoadingMore(false);
+    }
 
-    return () => {
-      isMounted = false;
+    const run = async () => {
+      try {
+        const first = await fetchPage(1);
+        if (cancelled || gen !== fetchGenRef.current) return;
+
+        setProducts(first.products);
+        setHasMore(first.hasMore);
+        setPage(1);
+        setLoading(false);
+        catalogSessionCache.set(filterKey, {
+          products: first.products,
+          hasMore: first.hasMore,
+          page: 1,
+          at: Date.now(),
+        });
+      } catch (err) {
+        console.error("Failed to load watches:", err);
+        if (!cancelled && gen === fetchGenRef.current) {
+          setLoading(false);
+        }
+      }
     };
-  }, [
-    debouncedSearchQuery,
-    selectedGenders,
-    selectedBrands,
-    debouncedPriceRange,
-    activeCategory,
-    activeFilter,
-    sortBy,
-    page,
-  ]);
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [filterKey, fetchPage]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    const gen = fetchGenRef.current;
+    const next = page + 1;
+    setLoadingMore(true);
+    try {
+      const batch = await fetchPage(next);
+      if (gen !== fetchGenRef.current) return;
+      setProducts((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const fresh = batch.products.filter((p) => !seen.has(p.id));
+        return fresh.length ? [...prev, ...fresh] : prev;
+      });
+      setHasMore(batch.hasMore);
+      setPage(next);
+    } catch (err) {
+      console.error("Failed to load more watches:", err);
+    } finally {
+      if (gen === fetchGenRef.current) setLoadingMore(false);
+    }
+  };
 
   const handleApplyFilters = () => {
     setMobileSidebarOpen(false);
@@ -474,14 +714,21 @@ function WatchesCatalogContent() {
           <div className="lg:col-span-3">
             {/* Active filters status / Results count */}
             <div className="flex flex-col gap-3 mb-6 px-1">
-              <p className="text-xs text-gray-500 font-medium">
-                Showing{" "}
-                <span className="font-bold text-gray-900">
-                  {products.length}
-                </span>{" "}
-                of{" "}
-                <span className="font-bold text-gray-900">{totalCount}</span>{" "}
-                luxury watches
+              <p className="text-xs text-gray-500 font-medium flex items-center gap-2 flex-wrap">
+                <span>
+                  Showing{" "}
+                  <span className="font-bold text-gray-900">
+                    {products.length}
+                    {hasMore ? "+" : ""}
+                  </span>{" "}
+                  luxury watches
+                </span>
+                {(loading || loadingMore) && (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                    <span className="h-3 w-3 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+                    Loading…
+                  </span>
+                )}
               </p>
               {activeChips.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
@@ -507,11 +754,14 @@ function WatchesCatalogContent() {
               )}
             </div>
 
-            {loading ? (
-              <div className="min-h-[400px] flex items-center justify-center bg-white rounded-2xl border border-gray-200">
-                <div className="w-10 h-10 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+            {/* Progressive grid: skeletons first, then products as batches arrive */}
+            {loading && products.length === 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                  <ProductCardSkeleton key={`sk-${i}`} index={i} />
+                ))}
               </div>
-            ) : products.length === 0 ? (
+            ) : !loading && products.length === 0 ? (
               <div className="min-h-[400px] flex flex-col items-center justify-center bg-white rounded-2xl border border-gray-200 p-8 text-center">
                 <p className="text-gray-500 font-medium mb-4">
                   No watches found matching the selected filters.
@@ -526,125 +776,37 @@ function WatchesCatalogContent() {
             ) : (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                  {products.map((product) => {
-                    const displayBrand =
-                      product.brand || product.collection || "Seiko";
-                    const displayName =
-                      product.name || product.title || "Exclusive Watch";
-
-                    return (
-                      <div
-                        key={product.id}
-                        onClick={() => router.push(`/product/${product.slug}`)}
-                        className="group bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col p-4 cursor-pointer hover:shadow-xl transition-all duration-500 hover:-translate-y-2 min-w-0"
-                      >
-                        {/* Product Image block (light gray backdrop) */}
-                        <div className="relative aspect-square w-full bg-slate-50 rounded-xl mb-4 overflow-hidden">
-                          {/* Top tag (e.g. New / Offer) */}
-                          {product.tag && (
-                            <span className="absolute top-3 left-3 bg-black text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
-                              {product.tag}
-                            </span>
-                          )}
-                          {product.isMainProduct && (
-                            <span className="absolute top-3 left-3 bg-[#0c2c42] text-white text-[9px] font-bold px-2 py-0.5 tracking-widest rounded-md uppercase z-10">
-                              EXCLUSIVE
-                            </span>
-                          )}
-
-                          {product.hoverImage ? (
-                            <>
-                              <img
-                                src={
-                                  product.image ||
-                                  "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
-                                }
-                                alt={displayName}
-                                className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 group-hover:opacity-0 pointer-events-none"
-                              />
-                              <img
-                                src={product.hoverImage}
-                                alt={`${displayName} hover`}
-                                className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
-                              />
-                            </>
-                          ) : (
-                            <img
-                              src={
-                                product.image ||
-                                "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048474/timect/image_4.png"
-                              }
-                              alt={displayName}
-                              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                            />
-                          )}
-                        </div>
-
-                        {/* Product Metadata */}
-                        <div className="flex-grow flex flex-col space-y-1 px-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase truncate max-w-[70%]">
-                              {displayBrand}
-                            </span>
-
-                            {/* Stars Rating */}
-                            <div className="flex items-center gap-1 text-amber-500 shrink-0">
-                              <LucideStar className="h-3 w-3 fill-amber-500" />
-                              <span className="text-[10px] font-bold text-gray-600">
-                                {product.rating || "4.5"}
-                              </span>
-                            </div>
-                          </div>
-
-                          <h3
-                            className="text-xs font-bold text-gray-900 uppercase truncate leading-tight mt-1"
-                            title={displayName}
-                          >
-                            {displayName}
-                          </h3>
-
-                          {product.code && (
-                            <span className="text-[10px] font-medium text-gray-400">
-                              Ref: {product.code}
-                            </span>
-                          )}
-                          {product.gender && (
-                            <span className="text-[9px] font-bold tracking-wider text-gray-400 uppercase">
-                              {product.gender}
-                            </span>
-                          )}
-
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 mt-auto">
-                            <span className="text-sm font-extrabold text-black">
-                              {product.price}
-                            </span>
-
-                            {/* Styled Button (Shopping Bag icon style) */}
-                            <button className="bg-black hover:bg-neutral-800 text-white rounded-lg px-3 py-2.5 text-[10px] font-extrabold tracking-wider transition-all duration-300 w-full sm:w-auto text-center cursor-pointer">
-                              VIEW DETAILS
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {products.map((product, index) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      index={index % PAGE_SIZE}
+                      onOpen={(slug) => router.push(`/product/${slug}`)}
+                    />
+                  ))}
+                  {/* Placeholder cards while more batches stream in */}
+                  {loadingMore &&
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <ProductCardSkeleton
+                        key={`more-sk-${i}`}
+                        index={i}
+                      />
+                    ))}
                 </div>
                 <div className="flex flex-col items-center mt-12 mb-6">
-                  {hasMore && (
+                  {hasMore && !loadingMore && (
                     <button
-                      onClick={() => setPage((prev) => prev + 1)}
-                      disabled={loadingMore}
+                      type="button"
+                      onClick={() => void loadMore()}
                       className="bg-black hover:bg-neutral-800 text-white px-8 py-3.5 rounded-xl text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
                     >
-                      {loadingMore ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          LOADING...
-                        </>
-                      ) : (
-                        "LOAD MORE PRODUCTS"
-                      )}
+                      LOAD MORE PRODUCTS
                     </button>
+                  )}
+                  {loadingMore && hasMore && (
+                    <p className="text-xs text-gray-400 font-medium tracking-wide">
+                      Fetching more watches…
+                    </p>
                   )}
                 </div>
               </>
@@ -836,8 +998,15 @@ export default function WatchesCatalogPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+        <div className="min-h-screen bg-slate-50">
+          <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="h-10 w-full max-w-md bg-white border border-gray-200 rounded-full mb-8 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:ml-[25%]">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ProductCardSkeleton key={i} index={i} />
+              ))}
+            </div>
+          </div>
         </div>
       }
     >

@@ -1,4 +1,5 @@
 import type { Product, Specification, Variant } from "@/db/actions";
+import { formatPrice } from "@/lib/price";
 
 /** Map DB snake_case row → Product (shared with storefront model) */
 export function mapRowToProduct(row: Record<string, unknown>): Product {
@@ -6,7 +7,7 @@ export function mapRowToProduct(row: Record<string, unknown>): Product {
     id: row.id as number,
     slug: (row.slug as string) || "",
     name: (row.name as string) || undefined,
-    price: (row.price as string) || "",
+    price: formatPrice(row.price as string),
     image: (row.image as string) || undefined,
     isMainProduct: Boolean(row.is_main_product),
     isNewArrival: Boolean(row.is_new_arrival),
@@ -25,7 +26,11 @@ export function mapRowToProduct(row: Record<string, unknown>): Product {
     collection: (row.collection as string) || undefined,
     description: (row.description as string) || undefined,
     gender: (row.gender as string) || undefined,
-    rating: row.rating != null ? parseFloat(String(row.rating)) : undefined,
+    rating: (() => {
+      if (row.rating == null || row.rating === "") return undefined;
+      const n = parseFloat(String(row.rating));
+      return Number.isFinite(n) ? n : undefined;
+    })(),
     hoverImage: (row.hover_image as string) || undefined,
   };
 }

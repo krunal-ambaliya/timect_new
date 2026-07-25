@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { LogOut, Menu, Moon, Search, Sun } from "lucide-react";
+import { LogOut, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { logoutAdmin } from "@/admin/actions/auth";
 import type { AdminSession } from "@/admin/lib/session";
 import ConfirmDialog from "@/admin/components/ui/ConfirmDialog";
@@ -32,6 +32,8 @@ export default function TopNavbar({
     });
   };
 
+  const searchValue = search || "";
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-[var(--admin-line)] bg-[var(--admin-surface)]/90 px-4 backdrop-blur-md lg:px-6">
       <button
@@ -45,14 +47,40 @@ export default function TopNavbar({
 
       {onSearch && (
         <div className="relative hidden min-w-0 flex-1 md:block md:max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]" />
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 text-[var(--admin-muted)]"
+            aria-hidden
+          />
           <input
-            type="search"
-            value={search || ""}
+            type="text"
+            role="searchbox"
+            name="admin_catalog_search"
+            inputMode="search"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
+            data-form-type="other"
+            value={searchValue}
             onChange={(e) => onSearch(e.target.value)}
             placeholder={searchPlaceholder}
-            className="admin-input pl-9"
+            aria-label={searchPlaceholder}
+            className="admin-input w-full"
+            style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }}
           />
+          {searchValue ? (
+            <button
+              type="button"
+              onClick={() => onSearch("")}
+              className="absolute right-2 top-1/2 z-[1] flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[var(--admin-muted)] hover:bg-[var(--admin-bg)] hover:text-[var(--admin-ink)]"
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
         </div>
       )}
 
