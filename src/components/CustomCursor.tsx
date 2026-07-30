@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 export default function CustomCursor() {
   const cursorOuterRef = useRef<HTMLDivElement>(null);
   const cursorInnerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const cursorOuter = cursorOuterRef.current;
     const cursorInner = cursorInnerRef.current;
@@ -20,12 +20,12 @@ export default function CustomCursor() {
     const handleMouseMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
-      
+
       gsap.to(cursorInner, {
         x: mouse.x,
         y: mouse.y,
         duration: 0.1,
-        ease: "power2.out"
+        ease: "power2.out",
       });
     };
 
@@ -35,32 +35,34 @@ export default function CustomCursor() {
       gsap.set(cursorOuter, { x: cursorOuterPos.x, y: cursorOuterPos.y });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
     gsap.ticker.add(tickerCursor);
 
     // Event delegation for hover states
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target) return;
-      
+
       // Check if target or any parent matches our hover elements
-      const interactiveEl = target.closest('a, button, .watch-wrap, .cursor-pointer');
+      const interactiveEl = target.closest(
+        "a, button, .watch-wrap, .cursor-pointer"
+      );
       if (interactiveEl) {
-        cursorOuter.classList.add('hover');
-        if (interactiveEl.classList.contains('watch-wrap')) {
-          cursorInner.classList.add('view');
+        cursorOuter.classList.add("hover");
+        if (interactiveEl.classList.contains("watch-wrap")) {
+          cursorInner.classList.add("view");
         }
       } else {
-        cursorOuter.classList.remove('hover');
-        cursorInner.classList.remove('view');
+        cursorOuter.classList.remove("hover");
+        cursorInner.classList.remove("view");
       }
     };
 
-    window.addEventListener('mouseover', handleMouseOver);
+    window.addEventListener("mouseover", handleMouseOver);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseover", handleMouseOver);
       gsap.ticker.remove(tickerCursor);
     };
   }, []);
@@ -72,4 +74,3 @@ export default function CustomCursor() {
     </>
   );
 }
-

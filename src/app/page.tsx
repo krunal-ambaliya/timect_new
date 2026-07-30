@@ -49,14 +49,14 @@ export default function Home() {
         setProductsLoaded(true); // fallback to let user see site anyway
       });
   }, []);
-  
+
   useGSAP(() => {
     // Lenis setup
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
+      direction: "vertical",
+      gestureDirection: "vertical",
       smooth: true,
       mouseMultiplier: 1,
       smoothTouch: false,
@@ -64,7 +64,7 @@ export default function Home() {
       infinite: false,
     } as any);
 
-    lenis.on('scroll', ScrollTrigger.update);
+    lenis.on("scroll", ScrollTrigger.update);
 
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
@@ -72,16 +72,16 @@ export default function Home() {
     gsap.ticker.lagSmoothing(0);
 
     // Elements
-    const preloader = document.querySelector('.preloader');
-    const preloaderLine = document.querySelector('.preloader-line');
-    const preloaderLogo = document.querySelector('.preloader-logo');
-    const header = document.querySelector('header');
-    const heroHeading = document.querySelector('.hero .serif');
-    const heroText = document.querySelector('.hero p');
-    const heroBtn = document.querySelector('.hero .btn-dark');
-    const heroImg = document.querySelector('.hero img');
-    const scrollProgress = document.querySelector('.scroll-progress');
-    const backToTop = document.querySelector('.back-to-top');
+    const preloader = document.querySelector(".preloader");
+    const preloaderLine = document.querySelector(".preloader-line");
+    const preloaderLogo = document.querySelector(".preloader-logo");
+    const header = document.querySelector("header");
+    const heroHeading = document.querySelector(".hero .serif");
+    const heroText = document.querySelector(".hero p");
+    const heroBtn = document.querySelector(".hero .btn-dark");
+    const heroImg = document.querySelector(".hero img");
+    const scrollProgress = document.querySelector(".scroll-progress");
+    const backToTop = document.querySelector(".back-to-top");
 
     // Initial States
     gsap.set(header, { yPercent: -100, opacity: 0 });
@@ -89,13 +89,13 @@ export default function Home() {
     gsap.set(heroText, { autoAlpha: 0, y: 30 });
     gsap.set(heroBtn, { autoAlpha: 0, y: 30 });
     gsap.set(heroImg, { scale: 1.08, opacity: 0 });
-    gsap.set('.heroDot', { autoAlpha: 0, x: -20 });
+    gsap.set(".heroDot", { autoAlpha: 0, x: -20 });
 
-    gsap.set('.prod-item', { opacity: 0, y: 40 });
-    gsap.set('.cat-tile', { clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)' });
-    gsap.set('footer .footer-col', { opacity: 0, y: 20 });
-    document.querySelectorAll('.bg-\\[\\#f4f4f2\\] *').forEach(el => {
-        if(el.tagName !== 'IMG') gsap.set(el, { opacity: 0, y: 20 });
+    gsap.set(".prod-item", { opacity: 0, y: 40 });
+    gsap.set(".cat-tile", { clipPath: "polygon(0 0, 100% 0, 100% 0, 0 0)" });
+    gsap.set("footer .footer-col", { opacity: 0, y: 20 });
+    document.querySelectorAll(".bg-\\[\\#f4f4f2\\] *").forEach((el) => {
+      if (el.tagName !== "IMG") gsap.set(el, { opacity: 0, y: 20 });
     });
 
     // Timect preloader on every homepage visit (waits for intro + product API)
@@ -116,7 +116,11 @@ export default function Home() {
 
     tlPreload
       .to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: "power2.out" })
-      .to(preloaderLine, { scaleX: 1, duration: 1.2, ease: "expo.inOut" }, "-=0.3");
+      .to(
+        preloaderLine,
+        { scaleX: 1, duration: 1.2, ease: "expo.inOut" },
+        "-=0.3"
+      );
 
     function playExitAnimation() {
       const tlExit = gsap.timeline();
@@ -132,13 +136,45 @@ export default function Home() {
 
     function initPageAnimations() {
       const tlLoad = gsap.timeline();
-      
-      tlLoad.to(header, { yPercent: 0, opacity: 1, duration: 0.8, ease: 'power3.out' })
-        .to(heroImg, { scale: 1, opacity: 1, duration: 1.2, ease: 'power3.out' }, "-=0.5")
-        .to(heroHeading, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power2.out' }, "-=1")
-        .to(heroText, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power2.out' }, "-=0.6")
-        .to(heroBtn, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' }, "-=0.6")
-        .to('.heroDot', { autoAlpha: 1, x: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' }, "-=0.6");
+
+      tlLoad
+        .to(header, {
+          yPercent: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power3.out",
+        })
+        .to(
+          heroImg,
+          { scale: 1, opacity: 1, duration: 1.2, ease: "power3.out" },
+          "-=0.5"
+        )
+        .to(
+          heroHeading,
+          { autoAlpha: 1, y: 0, duration: 0.8, ease: "power2.out" },
+          "-=1"
+        )
+        .to(
+          heroText,
+          { autoAlpha: 1, y: 0, duration: 0.8, ease: "power2.out" },
+          "-=0.6"
+        )
+        .to(
+          heroBtn,
+          { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" },
+          "-=0.6"
+        )
+        .to(
+          ".heroDot",
+          {
+            autoAlpha: 1,
+            x: 0,
+            duration: 0.5,
+            stagger: 0.1,
+            ease: "power2.out",
+          },
+          "-=0.6"
+        );
 
       initScrollAnimations();
     }
@@ -147,99 +183,146 @@ export default function Home() {
       // Scroll Progress
       const handleScroll = () => {
         const scrollPx = document.documentElement.scrollTop;
-        const winHeightPx = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const winHeightPx =
+          document.documentElement.scrollHeight -
+          document.documentElement.clientHeight;
         const scrolled = `${(scrollPx / winHeightPx) * 100}%`;
-        if(scrollProgress) (scrollProgress as HTMLElement).style.width = scrolled;
-        
+        if (scrollProgress)
+          (scrollProgress as HTMLElement).style.width = scrolled;
+
         if (scrollPx > 500) {
-          backToTop?.classList.add('visible');
+          backToTop?.classList.add("visible");
         } else {
-          backToTop?.classList.remove('visible');
+          backToTop?.classList.remove("visible");
         }
       };
-      window.addEventListener('scroll', handleScroll);
+      window.addEventListener("scroll", handleScroll);
 
-      if(backToTop) {
-          backToTop.addEventListener('click', () => {
-            lenis.scrollTo(0, { duration: 1.2, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+      if (backToTop) {
+        backToTop.addEventListener("click", () => {
+          lenis.scrollTo(0, {
+            duration: 1.2,
+            easing: (t: number) =>
+              Math.min(1, 1.001 - Math.pow(2, -10 * t)),
           });
+        });
       }
       // Hero Parallax
-      gsap.to('.hero .swirl', {
+      gsap.to(".hero .swirl", {
         yPercent: 30,
-        ease: 'none',
+        ease: "none",
         scrollTrigger: {
-          trigger: '.hero',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true
-        }
+          trigger: ".hero",
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
       });
-      
+
       gsap.to(heroImg, {
         yPercent: 15,
-        ease: 'none',
+        ease: "none",
         scrollTrigger: {
-          trigger: '.hero',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true
-        }
+          trigger: ".hero",
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
       });
 
       // Product Carousel Reveal
-      const productCards = document.querySelectorAll('.group.cursor-pointer');
-      productCards.forEach(card => card.classList.add('prod-item'));
-      
-      ScrollTrigger.batch('.prod-item', {
-        onEnter: batch => gsap.to(batch, {opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: 'power3.out'}),
-        start: "top 85%"
+      const productCards = document.querySelectorAll(".group.cursor-pointer");
+      productCards.forEach((card) => card.classList.add("prod-item"));
+
+      ScrollTrigger.batch(".prod-item", {
+        onEnter: (batch) =>
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            stagger: 0.1,
+            duration: 0.8,
+            ease: "power3.out",
+          }),
+        start: "top 85%",
       });
 
       // Category Grid Reveal
-      ScrollTrigger.batch('.cat-tile', {
-        onEnter: batch => gsap.to(batch, {clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)', stagger: 0.1, duration: 1, ease: 'power3.out'}),
-        start: "top 80%"
+      ScrollTrigger.batch(".cat-tile", {
+        onEnter: (batch) =>
+          gsap.to(batch, {
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+            stagger: 0.1,
+            duration: 1,
+            ease: "power3.out",
+          }),
+        start: "top 80%",
       });
-      
+
       // Featured Watch Reveal
-      gsap.fromTo('.grid.md\\:grid-cols-2 .watch-wrap', 
-        { clipPath: 'inset(10% 10% 10% 10%)', opacity: 0 },
-        { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, duration: 1.2, ease: 'power3.out', scrollTrigger: {
-          trigger: '.grid.md\\:grid-cols-2',
-          start: "top 75%"
-        }}
+      gsap.fromTo(
+        ".grid.md\\:grid-cols-2 .watch-wrap",
+        { clipPath: "inset(10% 10% 10% 10%)", opacity: 0 },
+        {
+          clipPath: "inset(0% 0% 0% 0%)",
+          opacity: 1,
+          duration: 1.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: ".grid.md\\:grid-cols-2",
+            start: "top 75%",
+          },
+        }
       );
 
       // Quote Section
-      ScrollTrigger.batch('.bg-\\[\\#f4f4f2\\] *:not(img)', {
-        onEnter: batch => gsap.to(batch, {opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: 'power2.out'}),
-        start: "top 85%"
+      ScrollTrigger.batch(".bg-\\[\\#f4f4f2\\] *:not(img)", {
+        onEnter: (batch) =>
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            stagger: 0.1,
+            duration: 0.8,
+            ease: "power2.out",
+          }),
+        start: "top 85%",
       });
 
       // Footer
-      ScrollTrigger.batch('footer .footer-col', {
-        onEnter: batch => gsap.to(batch, {opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: 'power2.out'}),
-        start: "top 95%"
+      ScrollTrigger.batch("footer .footer-col", {
+        onEnter: (batch) =>
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            stagger: 0.1,
+            duration: 0.8,
+            ease: "power2.out",
+          }),
+        start: "top 95%",
       });
     }
 
     // Button Press Animation
-    const allButtons = document.querySelectorAll('button');
-    const onMouseDown = (e: Event) => gsap.to(e.currentTarget, { scale: 0.98, duration: 0.1 });
-    const onMouseUp = (e: Event) => gsap.to(e.currentTarget, { scale: 1, duration: 0.2, ease: 'power2.out' });
-    
-    allButtons.forEach(btn => {
-      btn.addEventListener('mousedown', onMouseDown);
-      btn.addEventListener('mouseup', onMouseUp);
-      btn.addEventListener('mouseleave', onMouseUp);
+    const allButtons = document.querySelectorAll("button");
+    const onMouseDown = (e: Event) =>
+      gsap.to(e.currentTarget, { scale: 0.98, duration: 0.1 });
+    const onMouseUp = (e: Event) =>
+      gsap.to(e.currentTarget, {
+        scale: 1,
+        duration: 0.2,
+        ease: "power2.out",
+      });
+
+    allButtons.forEach((btn) => {
+      btn.addEventListener("mousedown", onMouseDown);
+      btn.addEventListener("mouseup", onMouseUp);
+      btn.addEventListener("mouseleave", onMouseUp);
     });
 
     return () => {
-      allButtons.forEach(btn => {
-        btn.removeEventListener('mousedown', onMouseDown);
-        btn.removeEventListener('mouseup', onMouseUp);
-        btn.removeEventListener('mouseleave', onMouseUp);
+      allButtons.forEach((btn) => {
+        btn.removeEventListener("mousedown", onMouseDown);
+        btn.removeEventListener("mouseup", onMouseUp);
+        btn.removeEventListener("mouseleave", onMouseUp);
       });
       lenis.destroy();
     };

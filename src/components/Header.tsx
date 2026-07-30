@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-  { href: '/about', label: 'About Us' },
-  { href: '/corporate-gifting', label: 'Corporate Gifting' },
-  { href: '/watches', label: 'Watches' },
-  { href: '/contact', label: 'Contact' },
+  { href: "/about", label: "About Us" },
+  { href: "/corporate-gifting", label: "Corporate Gifting" },
+  { href: "/watches", label: "Watches" },
+  { href: "/contact", label: "Contact" },
 ] as const;
 
 export default function Header() {
@@ -20,17 +20,19 @@ export default function Header() {
       setScrolled(window.scrollY > 50);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     handleScroll();
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   return (
     <>
-      <header className={`border-b border-[var(--line)] ${scrolled ? 'scrolled' : ''}`}>
+      <header
+        className={`border-b border-[var(--line)] ${scrolled ? "scrolled" : ""}`}
+      >
         <div className="max-w-[1400px] mx-auto flex items-center justify-between px-8 py-5">
           <Link href="/" className="flex items-center cursor-pointer">
             <img
@@ -60,12 +62,16 @@ export default function Header() {
       <div
         className={`md:hidden fixed inset-0 bg-white z-[9999] flex flex-col p-8 transition-all duration-200 ease-in-out ${
           menuOpen
-            ? 'opacity-100 translate-y-0 pointer-events-auto'
-            : 'opacity-0 -translate-y-4 pointer-events-none'
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 -translate-y-4 pointer-events-none"
         }`}
       >
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-          <Link href="/" onClick={() => setMenuOpen(false)} className="flex items-center">
+          <Link
+            href="/"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center"
+          >
             <img
               src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048492/timect/timect_logo.png"
               alt="Timect Logo"

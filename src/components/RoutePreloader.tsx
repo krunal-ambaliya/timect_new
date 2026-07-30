@@ -95,10 +95,10 @@ export default function RoutePreloader() {
       <img
         src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048492/timect/timect_logo.png"
         alt="Timect"
-        className="route-preloader-logo w-14 h-14 rounded-full object-contain mb-5"
+        className="route-preloader-logo w-24 h-24 rounded-full object-contain mb-2"
       />
-      <div className="tracked-sm text-[12px] mb-3 text-gray-700">Loading...</div>
-      <div className="route-preloader-track w-40 h-px bg-gray-200 overflow-hidden">
+      <div className="tracked-sm text-[12px] mb-1.5 text-gray-700">Loading...</div>
+      <div className="route-preloader-track w-48 h-[2px] bg-gray-200 overflow-hidden">
         <div className="route-preloader-line h-full bg-black origin-left" />
       </div>
     </div>
