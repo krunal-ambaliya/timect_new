@@ -4,14 +4,31 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
-const NAV_LINKS = [
+export type HeaderLink = {
+  href: string;
+  label: string;
+};
+
+const DEFAULT_NAV_LINKS: HeaderLink[] = [
   { href: "/about", label: "About Us" },
   { href: "/corporate-gifting", label: "Corporate Gifting" },
   { href: "/watches", label: "Watches" },
   { href: "/contact", label: "Contact" },
-] as const;
+];
 
-export default function Header() {
+type HeaderProps = {
+  /** Override nav links (e.g. gift page: Home, Contact, Catalog). */
+  links?: HeaderLink[];
+  /** Visual variant for special pages. */
+  variant?: "default" | "gift";
+  className?: string;
+};
+
+export default function Header({
+  links = DEFAULT_NAV_LINKS,
+  variant = "default",
+  className = "",
+}: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -28,10 +45,14 @@ export default function Header() {
     };
   }, []);
 
+  const isGift = variant === "gift";
+
   return (
     <>
       <header
-        className={`border-b border-[var(--line)] ${scrolled ? "scrolled" : ""}`}
+        className={`border-b border-[var(--line)] ${scrolled ? "scrolled" : ""} ${
+          isGift ? "header-gift-light" : ""
+        } ${className}`.trim()}
       >
         <div className="max-w-[1400px] mx-auto flex items-center justify-between px-8 py-5">
           <Link href="/" className="flex items-center cursor-pointer">
@@ -42,14 +63,19 @@ export default function Header() {
             />
           </Link>
           <nav className="hidden md:flex gap-10 text-[12px] tracked-sm">
-            {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="nav-link">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="nav-link cursor-pointer"
+              >
                 {link.label}
               </Link>
             ))}
           </nav>
 
           <button
+            type="button"
             onClick={() => setMenuOpen(true)}
             className="md:hidden p-2 text-gray-700 hover:text-black transition cursor-pointer"
             aria-label="Open Menu"
@@ -70,7 +96,7 @@ export default function Header() {
           <Link
             href="/"
             onClick={() => setMenuOpen(false)}
-            className="flex items-center"
+            className="flex items-center cursor-pointer"
           >
             <img
               src="https://res.cloudinary.com/dphscxzb4/image/upload/v1784048492/timect/timect_logo.png"
@@ -79,6 +105,7 @@ export default function Header() {
             />
           </Link>
           <button
+            type="button"
             onClick={() => setMenuOpen(false)}
             className="p-2 text-gray-700 hover:text-black cursor-pointer"
             aria-label="Close Menu"
@@ -87,12 +114,12 @@ export default function Header() {
           </button>
         </div>
         <nav className="flex flex-col gap-6 text-sm font-bold tracking-wider uppercase text-gray-800">
-          {NAV_LINKS.map((link) => (
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="hover:text-black pb-3 border-b border-gray-100"
+              className="hover:text-black pb-3 border-b border-gray-100 cursor-pointer"
             >
               {link.label}
             </Link>

@@ -5,3 +5,4 @@ export { default as CorporateGiftingExperience } from "./CorporateGiftingExperie
 export { default as InfiniteProductScroll } from "./InfiniteProductScroll";
 export { default as GiftProductRiver } from "./GiftProductRiver";
 export { default as FloatingGiftField } from "./FloatingGiftField";
+export { default as GiftProductOverlay } from "./GiftProductOverlay";

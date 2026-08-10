@@ -1028,10 +1028,17 @@ header.header-gift-light.scrolled {
   background: #f3f3f1;
 }
 
+.cg-gifts-main {
+  position: relative;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
 .cg-field-stage {
   position: relative;
-  min-height: 100svh;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 100%;
   background:
     radial-gradient(
       ellipse 80% 60% at 50% 45%,
@@ -1039,11 +1046,44 @@ header.header-gift-light.scrolled {
       #f3f3f1 55%,
       #ebeae6 100%
     );
+  /* Soft edge fade instead of hard crop */
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 5.5rem 0 7.5rem;
+  /* Room for header + sticky colour panel; keep all 3 rows fully visible */
+  padding: 4.75rem 0 7.25rem;
+}
+
+/* Fade top/bottom so products never look hard-clipped */
+.cg-field-stage::before,
+.cg-field-stage::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  height: clamp(2.5rem, 6vh, 4.5rem);
+  pointer-events: none;
+}
+.cg-field-stage::before {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    #f3f3f1 0%,
+    rgba(243, 243, 241, 0.85) 40%,
+    transparent 100%
+  );
+}
+.cg-field-stage::after {
+  bottom: 0;
+  height: clamp(5rem, 12vh, 7.5rem);
+  background: linear-gradient(
+    to top,
+    #f3f3f1 0%,
+    rgba(243, 243, 241, 0.9) 35%,
+    transparent 100%
+  );
 }
 
 /* Smoother scrolling on gift page — Lenis owns wheel easing */
@@ -1074,17 +1114,26 @@ html:has(.cg-gifts-omega) {
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   min-height: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Floating multi-row field — Timect Orbital Time Field */
 .floating-gift-field {
   position: relative;
   width: 100%;
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
   user-select: none;
-  touch-action: pan-y;
+  /* Wheel drives product flow; allow horizontal scrub on trackpad */
+  touch-action: none;
   cursor: default;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .floating-gift-field.is-dragging {
@@ -1107,9 +1156,12 @@ html:has(.cg-gifts-omega) {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: clamp(1.35rem, 3.8vh, 3rem);
-  padding: 1.25rem 0 2rem;
+  justify-content: center;
+  /* Tighter vertical rhythm so all 3 rows fit without half-crop */
+  gap: clamp(0.85rem, 2.2vh, 1.75rem);
+  padding: clamp(0.5rem, 1.5vh, 1.25rem) 0;
   will-change: transform;
+  width: 100%;
 }
 
 .floating-row {
@@ -1262,18 +1314,43 @@ html:has(.cg-gifts-omega) {
   color: #111;
   will-change: transform;
   transform: translate3d(0, 0, 0);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  text-align: center;
 }
 
+/* Sized so 3 rows + gaps fit fully in the viewport */
 .float-product--sm {
-  width: clamp(88px, 11vw, 120px);
+  width: clamp(72px, 9.5vw, 104px);
 }
 
 .float-product--md {
-  width: clamp(110px, 14vw, 155px);
+  width: clamp(92px, 12vw, 132px);
 }
 
 .float-product--lg {
-  width: clamp(130px, 17vw, 190px);
+  width: clamp(108px, 14vw, 158px);
+}
+
+@media (max-height: 700px) {
+  .float-product--sm {
+    width: clamp(64px, 8vw, 88px);
+  }
+  .float-product--md {
+    width: clamp(78px, 10vw, 110px);
+  }
+  .float-product--lg {
+    width: clamp(92px, 12vw, 128px);
+  }
+  .floating-gift-field__rows {
+    gap: clamp(0.5rem, 1.4vh, 1rem);
+  }
 }
 
 .float-product__halo {
@@ -1367,19 +1444,41 @@ html:has(.cg-gifts-omega) {
 }
 
 /* Bottom colour panel */
+/* Colour filter — pinned to viewport bottom (stays on screen always) */
 .cg-colour-panel {
-  position: absolute;
+  position: fixed;
   left: 50%;
-  bottom: 1.5rem;
+  bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  z-index: 6;
+  z-index: 60;
   width: min(360px, calc(100% - 2rem));
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  border-radius: 4px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-  padding: 1.15rem 1.35rem 0.95rem;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem 1.5rem 1.05rem;
   text-align: center;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    visibility 0.35s;
+}
+
+.cg-colour-panel.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(16px);
+}
+
+/* Gift page header sits above field */
+.cg-gifts-omega header.header-gift-light {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
 }
 
 .cg-colour-panel__title {
@@ -1396,6 +1495,13 @@ html:has(.cg-gifts-omega) {
   gap: 0.55rem;
   flex-wrap: wrap;
   margin-bottom: 0.95rem;
+}
+
+.cg-swatch-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cg-swatch {
@@ -1426,6 +1532,50 @@ html:has(.cg-gifts-omega) {
   transform: scale(1.08);
 }
 
+/* Tooltip on top of colour swatch */
+.cg-swatch__tooltip {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #111111;
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  z-index: 70;
+}
+
+.cg-swatch__tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 3px;
+  border-style: solid;
+  border-color: #111111 transparent transparent transparent;
+}
+
+.cg-swatch-wrap:hover .cg-swatch__tooltip,
+.cg-swatch-wrap:focus-within .cg-swatch__tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
 .cg-colour-panel__meta {
   display: flex;
   justify-content: space-between;
@@ -1448,6 +1598,348 @@ html:has(.cg-gifts-omega) {
 
 .cg-colour-panel__count {
   color: #555;
+}
+
+/* ========== Gift product overlay (Omega-style same-screen reveal) ========== */
+.gpo-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+}
+
+.gpo-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: #f3f3f1;
+  cursor: default;
+  appearance: none;
+}
+
+.gpo-inner {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  min-height: 100dvh;
+  pointer-events: none;
+}
+
+.gpo-inner a,
+.gpo-inner button:not(.gpo-backdrop) {
+  pointer-events: auto;
+}
+
+.gpo-chrome {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 4.5rem;
+  padding: 0 1.25rem;
+  pointer-events: none;
+}
+
+.gpo-chrome > * {
+  pointer-events: auto;
+}
+
+.gpo-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gpo-logo__img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  opacity: 0.92;
+}
+
+.gpo-close {
+  position: absolute;
+  top: 50%;
+  right: 1.25rem;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  color: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.gpo-close:hover {
+  background: #fafafa;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.gpo-stage {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(260px, 1.15fr) minmax(180px, 0.9fr);
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  width: min(1180px, calc(100% - 3rem));
+  margin: 0 auto;
+  padding: 5.5rem 0 2.5rem;
+  pointer-events: none;
+}
+
+.gpo-stage > * {
+  pointer-events: auto;
+}
+
+.gpo-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  max-width: 320px;
+}
+
+.gpo-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3.2vw, 2.75rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2c2c2c;
+}
+
+.gpo-subtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #888;
+  max-width: 16rem;
+}
+
+.gpo-price {
+  margin: 0.55rem 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #222;
+  letter-spacing: 0.02em;
+}
+
+.gpo-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.gpo-discover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  color: #222;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.gpo-discover:hover {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+  transform: translateY(-1px);
+}
+
+.gpo-heart {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  color: #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.gpo-heart:hover {
+  color: #b33;
+  border-color: rgba(180, 60, 60, 0.35);
+  transform: scale(1.05);
+}
+
+.gpo-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(58vh, 520px);
+}
+
+.gpo-circle {
+  position: relative;
+  width: min(42vw, 480px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--gpo-accent, #6b7168);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.12),
+    inset 0 0 60px rgba(255, 255, 255, 0.06);
+  will-change: transform, opacity;
+}
+
+.gpo-product-img {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  filter: none;
+  will-change: transform, opacity;
+  pointer-events: none;
+  user-select: none;
+}
+
+.gpo-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: 220px;
+  justify-self: end;
+}
+
+.gpo-specs-label {
+  margin: 0;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+.gpo-specs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.gpo-specs li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.gpo-spec-key {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #bbb;
+}
+
+.gpo-spec-val {
+  font-size: 0.9rem;
+  color: #444;
+  font-weight: 400;
+}
+
+@media (max-width: 960px) {
+  .gpo-stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    justify-items: center;
+    text-align: center;
+    gap: 1.5rem;
+    padding-top: 5rem;
+    padding-bottom: 2rem;
+  }
+
+  .gpo-left {
+    align-items: center;
+    order: 2;
+    max-width: 100%;
+  }
+
+  .gpo-center {
+    order: 1;
+    min-height: auto;
+  }
+
+  .gpo-circle {
+    width: min(78vw, 360px);
+  }
+
+  .gpo-right {
+    order: 3;
+    align-items: center;
+    justify-self: center;
+    max-width: 100%;
+  }
+
+  .gpo-specs {
+    align-items: center;
+  }
+
+  .gpo-specs li {
+    align-items: center;
+  }
+
+  .gpo-subtitle {
+    max-width: 22rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gpo-close:hover,
+  .gpo-discover:hover,
+  .gpo-heart:hover {
+    transform: none;
+  }
 }
 
 /* Lower band under field */

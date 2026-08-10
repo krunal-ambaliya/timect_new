@@ -1,28 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import ScrollTrigger from "gsap/ScrollTrigger";
-import Lenis from "@studio-freight/lenis";
 
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import Magnetic from "@/components/animations/Magnetic";
 import FloatingGiftField from "@/components/immersive/FloatingGiftField";
+import GiftProductOverlay from "@/components/immersive/GiftProductOverlay";
 import { signalPageReady } from "@/lib/page-ready";
-import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
+import { EASE, prefersReducedMotion } from "@/lib/motion";
 import type { GiftSample } from "@/data/giftSamples";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import type { GiftProduct } from "@/components/immersive/InfiniteProductScroll";
 
 type Props = {
   /** Static gift samples only — not loaded from the database. */
   products: GiftSample[];
 };
+
+const GIFT_NAV = [
+  { href: "/", label: "Home" },
+  { href: "/contact", label: "Contact" },
+  { href: "/watches", label: "Catalog" },
+] as const;
 
 const COLOURS = [
   { id: "all", label: "All", swatch: "#f5f2ec", border: true },
@@ -36,28 +36,29 @@ const COLOURS = [
 
 /**
  * Corporate gifting — Omega “my gifts” style:
- * full-viewport light floating product field, slow multi-row infinite slider.
+ * full-viewport light floating product field, sticky colour panel, no footer.
  */
 export default function CorporateGiftingExperience({ products }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [colour, setColour] = useState<string>("all");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [overlayOpen, setOverlayOpen] = useState(false);
 
   const giftProducts = useMemo(() => {
-    const base = products
-      .filter((p) => p.image)
-      .map((p) => ({
-        id: p.id,
-        slug: p.slug,
-        name: p.name,
-        title: p.title,
-        price: p.price,
-        image: p.image,
-        hoverImage: p.hoverImage,
-      }));
+    const toGift = (p: GiftSample): GiftProduct => ({
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      title: p.title,
+      price: p.price,
+      image: p.image,
+      hoverImage: p.hoverImage,
+    });
+
+    const base = products.filter((p) => p.image).map(toGift);
 
     if (colour === "all") return base;
 
-    // Soft client-side keyword filter by name / collection (sample data)
     const keywords: Record<string, string[]> = {
       silver: ["silver", "steel", "graphite", "line", "studio"],
       gold: ["gold", "truton", "two-tone"],
@@ -74,21 +75,40 @@ export default function CorporateGiftingExperience({ products }: Props) {
         `${p.name || ""} ${p.title || ""} ${p.collection || ""}`.toLowerCase();
       return keys.some((k) => t.includes(k));
     });
-    return filtered.length
-      ? filtered.map((p) => ({
-          id: p.id,
-          slug: p.slug,
-          name: p.name,
-          title: p.title,
-          price: p.price,
-          image: p.image,
-          hoverImage: p.hoverImage,
-        }))
-      : base;
+    return filtered.length ? filtered.map(toGift) : base;
   }, [products, colour]);
+
+  const selectedProduct = useMemo(() => {
+    if (selectedId == null) return null;
+    return products.find((p) => p.id === selectedId) ?? null;
+  }, [products, selectedId]);
+
+  const handleProductSelect = useCallback((product: GiftProduct) => {
+    setSelectedId(product.id);
+    setOverlayOpen(true);
+  }, []);
+
+  const handleOverlayClose = useCallback(() => {
+    setOverlayOpen(false);
+    window.setTimeout(() => setSelectedId(null), 350);
+  }, []);
 
   useEffect(() => {
     signalPageReady();
+  }, []);
+
+  // Lock page scroll — gift field is the only interaction surface
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflow;
+    const prevBody = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevHtml;
+      body.style.overflow = prevBody;
+    };
   }, []);
 
   useGSAP(
@@ -97,110 +117,34 @@ export default function CorporateGiftingExperience({ products }: Props) {
       if (!root) return;
 
       const reduced = prefersReducedMotion();
-      let lenis: Lenis | null = null;
-
-      if (!reduced) {
-        // Buttery page scroll — longer settle, softer exponential ease
-        lenis = new Lenis({
-          duration: 1.55,
-          easing: (t: number) =>
-            t === 1 ? 1 : 1 - Math.pow(2, -11 * t),
-          smoothWheel: true,
-          wheelMultiplier: 0.85,
-          touchMultiplier: 1.35,
-          syncTouch: false,
-        } as ConstructorParameters<typeof Lenis>[0]);
-        lenis.on("scroll", ScrollTrigger.update);
-        const tickerFn = (time: number) => {
-          lenis?.raf(time * 1000);
-        };
-        gsap.ticker.add(tickerFn);
-        gsap.ticker.lagSmoothing(0);
-        (lenis as any).__tickerFn = tickerFn;
-      }
-
       const header = root.querySelector("header");
       const field = root.querySelector(".cg-field-stage");
       const panel = root.querySelector(".cg-colour-panel");
 
       if (reduced) {
-        gsap.set([header, field, panel], { autoAlpha: 1, y: 0 });
-      } else {
-        gsap.set(header, { yPercent: -100, opacity: 0 });
-        gsap.set(field, { autoAlpha: 0 });
-        gsap.set(panel, { autoAlpha: 0, y: 24 });
-
-        gsap
-          .timeline({ defaults: { ease: EASE.out } })
-          .to(header, { yPercent: 0, opacity: 1, duration: 0.8 })
-          .to(field, { autoAlpha: 1, duration: 1.1, ease: EASE.expo }, "-=0.4")
-          .to(panel, { autoAlpha: 1, y: 0, duration: 0.7 }, "-=0.5");
+        gsap.set([header, field], { autoAlpha: 1, y: 0 });
+        gsap.set(panel, { autoAlpha: 1, y: 0, xPercent: -50 });
+        return;
       }
 
-      if (!reduced) {
-        gsap.set(".cg-reveal", { autoAlpha: 0, y: 28 });
-        ScrollTrigger.batch(".cg-reveal", {
-          start: "top 88%",
-          onEnter: (batch) =>
-            gsap.to(batch, {
-              autoAlpha: 1,
-              y: 0,
-              stagger: 0.08,
-              duration: DURATION.base,
-              ease: EASE.out,
-            }),
-        });
-      }
+      gsap.set(header, { yPercent: -100, opacity: 0 });
+      gsap.set(field, { autoAlpha: 0 });
+      gsap.set(panel, { autoAlpha: 0, y: 24, xPercent: -50 });
 
-      const scrollProgress = root.querySelector(".scroll-progress");
-      const backToTop = root.querySelector(".back-to-top");
-      const onScroll = () => {
-        const scrollPx = document.documentElement.scrollTop;
-        const winHeightPx =
-          document.documentElement.scrollHeight -
-          document.documentElement.clientHeight;
-        if (scrollProgress && winHeightPx > 0) {
-          (scrollProgress as HTMLElement).style.width = `${(scrollPx / winHeightPx) * 100}%`;
-        }
-        if (scrollPx > 400) backToTop?.classList.add("visible");
-        else backToTop?.classList.remove("visible");
-      };
-      window.addEventListener("scroll", onScroll, { passive: true });
-
-      const onTop = () => {
-        if (lenis) {
-          lenis.scrollTo(0, {
-            duration: 1.3,
-            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-          });
-        } else {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      };
-      backToTop?.addEventListener("click", onTop);
-
-      return () => {
-        window.removeEventListener("scroll", onScroll);
-        backToTop?.removeEventListener("click", onTop);
-        const tickerFn = (lenis as any)?.__tickerFn;
-        if (tickerFn) gsap.ticker.remove(tickerFn);
-        lenis?.destroy();
-        ScrollTrigger.getAll().forEach((st) => st.kill());
-      };
+      gsap
+        .timeline({ defaults: { ease: EASE.out } })
+        .to(header, { yPercent: 0, opacity: 1, duration: 0.8 })
+        .to(field, { autoAlpha: 1, duration: 1.1, ease: EASE.expo }, "-=0.4")
+        .to(panel, { autoAlpha: 1, y: 0, xPercent: -50, duration: 0.7 }, "-=0.5");
     },
     { scope: rootRef }
   );
 
   return (
     <div ref={rootRef} className="cg-page cg-gifts-omega">
-      <div className="scroll-progress" aria-hidden="true" />
-      <button type="button" className="back-to-top" aria-label="Back to top">
-        ↑
-      </button>
-      <Header />
+      <Header links={[...GIFT_NAV]} variant="gift" />
 
-      <main>
-        {/* Full-viewport floating product field */}
+      <main className="cg-gifts-main">
         <section
           className="cg-field-stage"
           data-header-theme="light"
@@ -218,72 +162,58 @@ export default function CorporateGiftingExperience({ products }: Props) {
             products={giftProducts}
             baseDuration={130}
             className="cg-field-main"
+            onProductSelect={handleProductSelect}
+            paused={overlayOpen}
           />
+        </section>
 
-          {/* Bottom control panel — colour filter */}
-          <div className="cg-colour-panel" role="region" aria-label="Filter gifts">
-            <p className="cg-colour-panel__title tracked">Pick a colour</p>
-            <div className="cg-colour-panel__swatches" role="listbox" aria-label="Colours">
-              {COLOURS.map((c) => (
+        {/* Fixed to viewport bottom — stays visible while interacting */}
+        <div
+          className={`cg-colour-panel${overlayOpen ? " is-hidden" : ""}`}
+          role="region"
+          aria-label="Filter gifts"
+          aria-hidden={overlayOpen}
+        >
+          <p className="cg-colour-panel__title tracked">Pick a colour</p>
+          <div
+            className="cg-colour-panel__swatches"
+            role="listbox"
+            aria-label="Colours"
+          >
+            {COLOURS.map((c) => (
+              <div key={c.id} className="cg-swatch-wrap">
                 <button
-                  key={c.id}
                   type="button"
                   role="option"
                   aria-selected={colour === c.id}
                   aria-label={c.label}
-                  className={`cg-swatch${colour === c.id ? " is-active" : ""}${
+                  className={`cg-swatch cursor-pointer${colour === c.id ? " is-active" : ""}${
                     "border" in c && c.border ? " cg-swatch--bordered" : ""
                   }`}
                   style={{ background: c.swatch }}
                   onClick={() => setColour(c.id)}
                 />
-              ))}
-            </div>
-            <div className="cg-colour-panel__meta">
-              <Link href="/" className="cg-colour-panel__back">
-                ‹ Back
-              </Link>
-              <span className="cg-colour-panel__count">
-                {giftProducts.length} products
-              </span>
-            </div>
+                <span role="tooltip" className="cg-swatch__tooltip">
+                  {c.label}
+                </span>
+              </div>
+            ))}
           </div>
-        </section>
-
-        {/* Supporting corporate copy below the field */}
-        <section
-          className="cg-omega-footer-band"
-          data-header-theme="light"
-          aria-label="Corporate programme"
-        >
-          <div className="cg-omega-footer-band__inner">
-            <p className="cg-reveal tracked cg-kicker-dark">Corporate gifting</p>
-            <h2 className="cg-reveal serif cg-omega-footer-band__title">
-              Gifts that mark achievement
-            </h2>
-            <p className="cg-reveal cg-omega-footer-band__body">
-              Drag the field to explore, move your cursor to focus a piece, then
-              select it for details—or enquire for bulk programmes and
-              engraving.
-            </p>
-            <div className="cg-reveal cg-omega-footer-band__actions">
-              <Magnetic strength={8}>
-                <Link href="/contact" className="btn-lux btn-lux--ink">
-                  Enquire now
-                </Link>
-              </Magnetic>
-              <Magnetic strength={8}>
-                <Link href="/watches" className="btn-outline-ink">
-                  Full catalog
-                </Link>
-              </Magnetic>
-            </div>
+          <div className="cg-colour-panel__meta">
+            <Link href="/" className="cg-colour-panel__back cursor-pointer">
+              ‹ Back
+            </Link>
+            <span className="cg-colour-panel__count">
+              {giftProducts.length} products
+            </span>
           </div>
-        </section>
-
-        <div data-header-theme="light">
-          <Footer />
         </div>
+
+        <GiftProductOverlay
+          product={selectedProduct}
+          open={overlayOpen && !!selectedProduct}
+          onClose={handleOverlayClose}
+        />
       </main>
     </div>
   );

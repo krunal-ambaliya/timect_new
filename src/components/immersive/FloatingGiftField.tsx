@@ -8,7 +8,6 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -21,6 +20,10 @@ type FloatingGiftFieldProps = {
   /** Base seconds for one full loop — higher = slower. */
   baseDuration?: number;
   className?: string;
+  /** Same-screen product reveal — no route navigation. */
+  onProductSelect?: (product: GiftProduct) => void;
+  /** Pause orbital motion (e.g. while overlay is open). */
+  paused?: boolean;
 };
 
 type RowRuntime = {
@@ -46,6 +49,8 @@ export default function FloatingGiftField({
   products,
   baseDuration = 125,
   className = "",
+  onProductSelect,
+  paused = false,
 }: FloatingGiftFieldProps) {
   const reduced = usePrefersReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -57,7 +62,10 @@ export default function FloatingGiftField({
   const draggingRef = useRef(false);
   const dragLastXRef = useRef(0);
   const pointerRef = useRef({ x: 0.5, y: 0.5, active: false });
-  const scrollBoostRef = useRef(0);
+  /** Extra horizontal velocity from wheel (px/s). + = content moves left. */
+  const wheelVelRef = useRef(0);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
   const [dragging, setDragging] = useState(false);
   // note: no full-field pause — only soft-slow on product hover
 
@@ -107,41 +115,61 @@ export default function FloatingGiftField({
     runtimesRef.current = next;
   }, [baseDuration]);
 
-  // rAF driver — smoother than GSAP repeat for multi-row + drag + inertia
+  // rAF driver — auto flow + smooth slow wheel velocity
   useEffect(() => {
     if (reduced) return;
+
+    const wrapPos = (rt: RowRuntime) => {
+      const h = rt.half;
+      if (h <= 0) return;
+      while (rt.pos <= -h) rt.pos += h;
+      while (rt.pos > 0) rt.pos -= h;
+    };
 
     const tick = (ts: number) => {
       const last = lastTsRef.current || ts;
       const dt = Math.min(0.05, (ts - last) / 1000);
       lastTsRef.current = ts;
 
-      // Decay scroll boost
-      scrollBoostRef.current *= 0.92;
-      if (Math.abs(scrollBoostRef.current) < 0.05) scrollBoostRef.current = 0;
+      // Smooth, slow coast after wheel — frame-rate independent friction
+      // Higher power = longer, softer glide
+      wheelVelRef.current *= Math.pow(0.955, dt * 60);
+      if (Math.abs(wheelVelRef.current) < 0.4) wheelVelRef.current = 0;
 
       const productHover =
         rootRef.current?.dataset.productHover === "1" && !draggingRef.current;
-      const boost = scrollBoostRef.current;
+      const fieldPaused = pausedRef.current;
+      const wheelVel = wheelVelRef.current;
+      const isScrolling = Math.abs(wheelVel) > 1;
 
       runtimesRef.current.forEach((rt) => {
-        // Ease speed toward base; slow to a near-stop when inspecting a product
-        const target = productHover
-          ? rt.baseSpeed * 0.08
-          : rt.baseSpeed + boost * Math.sign(rt.baseSpeed || 1) * 40;
-        rt.speed += (target - rt.speed) * (draggingRef.current ? 0.08 : 0.055);
+        if (fieldPaused) {
+          rt.speed += (0 - rt.speed) * 0.12;
+        } else if (draggingRef.current) {
+          // Pointer drag owns position this frame; keep fling energy as set on move
+        } else if (isScrolling) {
+          // Per-row flow:
+          //  scroll UP   → continue that row’s natural direction
+          //  scroll DOWN → reverse that row’s direction
+          // All rows receive the wheel; each uses its own baseSpeed sign.
+          const flow = Math.sign(rt.baseSpeed) || -1;
+          // wheelVel > 0 (down) → opposite flow; wheelVel < 0 (up) → with flow
+          const scrollPart = -flow * wheelVel;
+          const target = scrollPart + rt.baseSpeed * 0.12;
+          rt.speed += (target - rt.speed) * 0.085; // soft ease-in
+        } else if (productHover) {
+          const target = rt.baseSpeed * 0.08;
+          rt.speed += (target - rt.speed) * 0.055;
+        } else {
+          // Resume gentle auto-flow
+          rt.speed += (rt.baseSpeed - rt.speed) * 0.04;
+        }
 
-        if (!draggingRef.current) {
+        if (!draggingRef.current && !fieldPaused) {
           rt.pos += rt.speed * dt;
         }
 
-        // Wrap seamless within [-half, 0]
-        const h = rt.half;
-        if (h > 0) {
-          while (rt.pos <= -h) rt.pos += h;
-          while (rt.pos > 0) rt.pos -= h;
-        }
-
+        wrapPos(rt);
         gsap.set(rt.track, { x: rt.pos, force3D: true });
       });
 
@@ -159,7 +187,6 @@ export default function FloatingGiftField({
           ease: "power3.out",
           overwrite: "auto",
         });
-        // Parallax depth on rows
         root.querySelectorAll<HTMLElement>(".floating-row").forEach((row, i) => {
           const depth = (i - 1) * 6;
           gsap.to(row, {
@@ -181,7 +208,7 @@ export default function FloatingGiftField({
         });
       }
 
-      // Focus scale on products near pointer (skip if product is actively hovered)
+      // Focus scale on products near pointer
       if (root && p.active && !draggingRef.current) {
         const rect = root.getBoundingClientRect();
         const px = rect.left + p.x * rect.width;
@@ -216,7 +243,6 @@ export default function FloatingGiftField({
       rafRef.current = requestAnimationFrame(tick);
     };
 
-    // Measure after layout
     const boot = requestAnimationFrame(() => {
       measureRuntimes();
       lastTsRef.current = 0;
@@ -228,31 +254,133 @@ export default function FloatingGiftField({
     const onResize = () => measureRuntimes();
     window.addEventListener("resize", onResize);
 
-    // Scroll velocity → temporary marquee boost (unique feel)
-    let lastScrollY = window.scrollY;
-    let lastScrollT = performance.now();
-    const onScroll = () => {
-      const now = performance.now();
-      const dy = window.scrollY - lastScrollY;
-      const dt = Math.max(1, now - lastScrollT);
-      const v = dy / dt; // px/ms
-      scrollBoostRef.current = gsap.utils.clamp(-2.5, 2.5, v * 18);
-      lastScrollY = window.scrollY;
-      lastScrollT = now;
+    /**
+     * Smooth slow wheel control (up & down).
+     * Velocity only — each row maps this through its own flow direction in tick.
+     * All rows scroll together; reverse rows reverse correctly.
+     */
+    const onWheel = (e: WheelEvent) => {
+      if (pausedRef.current) return;
+      let delta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
+      if (!delta) return;
+      e.preventDefault();
+
+      // Normalize line / page deltas to pixel-ish units
+      if (e.deltaMode === 1) delta *= 14; // lines
+      if (e.deltaMode === 2) delta *= 400; // pages
+
+      // Low sensitivity → slow motion; clamp so one flick stays gentle
+      const impulse = gsap.utils.clamp(-48, 48, delta * 0.28);
+      wheelVelRef.current = gsap.utils.clamp(
+        -160,
+        160,
+        wheelVelRef.current + impulse
+      );
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+
+    window.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
       cancelAnimationFrame(boot);
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel", onWheel);
     };
   }, [reduced, measureRuntimes, products.length]);
 
   useEffect(() => {
     measureRuntimes();
   }, [products, measureRuntimes]);
+
+  // Staggered luxury entrance animation whenever products change (e.g. colour swatch clicked)
+  useGSAP(
+    () => {
+      if (reduced || !rootRef.current) return;
+      const items = rootRef.current.querySelectorAll<HTMLElement>(".float-product");
+      if (!items.length) return;
+
+      // Animate products flying in with organic randomized offsets into their aligned floating positions
+      gsap.fromTo(
+        items,
+        {
+          opacity: 0,
+          scale: () => gsap.utils.random(0.35, 0.65),
+          y: () => gsap.utils.random(40, 110) * (Math.random() > 0.5 ? 1 : -1),
+          x: () => gsap.utils.random(-50, 50),
+          rotation: () => gsap.utils.random(-15, 15),
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          x: 0,
+          rotation: 0,
+          duration: 0.95,
+          ease: "back.out(1.4)",
+          stagger: {
+            amount: 0.45,
+            from: "random",
+          },
+          overwrite: "auto",
+        }
+      );
+    },
+    { dependencies: [products, reduced], scope: rootRef }
+  );
+
+  // Reduced-motion: still allow slow bidirectional wheel scrub via rAF ease
+  useEffect(() => {
+    if (!reduced) return;
+
+    measureRuntimes();
+    let raf = 0;
+    let last = 0;
+
+    const tick = (ts: number) => {
+      const dt = Math.min(0.05, (ts - (last || ts)) / 1000);
+      last = ts;
+      wheelVelRef.current *= Math.pow(0.955, dt * 60);
+      if (Math.abs(wheelVelRef.current) < 0.4) wheelVelRef.current = 0;
+
+      const wheelVel = wheelVelRef.current;
+      if (!pausedRef.current && Math.abs(wheelVel) > 0.4) {
+        runtimesRef.current.forEach((rt) => {
+          const flow = Math.sign(rt.baseSpeed) || -1;
+          // up = with flow, down = reverse flow (same as main loop)
+          rt.pos += -flow * wheelVel * dt;
+          const h = rt.half;
+          if (h > 0) {
+            while (rt.pos <= -h) rt.pos += h;
+            while (rt.pos > 0) rt.pos -= h;
+          }
+          gsap.set(rt.track, { x: rt.pos, force3D: true });
+        });
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    const onWheel = (e: WheelEvent) => {
+      if (pausedRef.current) return;
+      let delta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
+      if (!delta) return;
+      e.preventDefault();
+      if (e.deltaMode === 1) delta *= 14;
+      if (e.deltaMode === 2) delta *= 400;
+      const impulse = gsap.utils.clamp(-48, 48, delta * 0.28);
+      wheelVelRef.current = gsap.utils.clamp(
+        -160,
+        160,
+        wheelVelRef.current + impulse
+      );
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("wheel", onWheel);
+    };
+  }, [reduced, measureRuntimes]);
 
   const onPointerMove = (e: ReactPointerEvent) => {
     const root = rootRef.current;
@@ -296,9 +424,10 @@ export default function FloatingGiftField({
   };
 
   const onPointerDown = (e: ReactPointerEvent) => {
-    // Only drag on empty field / not on links — allow product clicks
+    // Only drag on empty field — allow product buttons to receive clicks
     const t = e.target as HTMLElement;
-    if (t.closest("a.float-product")) return;
+    if (t.closest("button.float-product, a.float-product")) return;
+    if (pausedRef.current) return;
     draggingRef.current = true;
     setDragging(true);
     dragLastXRef.current = e.clientX;
@@ -364,6 +493,7 @@ export default function FloatingGiftField({
                     index={i + rowIndex * 3}
                     size={sizeFor(i, rowIndex)}
                     reduced={reduced}
+                    onSelect={onProductSelect}
                   />
                 ))}
               </div>
@@ -376,6 +506,7 @@ export default function FloatingGiftField({
                       index={i + rowIndex * 3}
                       size={sizeFor(i, rowIndex)}
                       reduced={reduced}
+                      onSelect={onProductSelect}
                     />
                   ))}
                 </div>
@@ -386,7 +517,7 @@ export default function FloatingGiftField({
       </div>
 
       <p className="orbital-hint tracked-sm" aria-hidden="true">
-        Drag to explore · Hover to focus
+        Scroll or drag to explore · Hover to focus
       </p>
     </div>
   );
@@ -404,23 +535,24 @@ function FloatProduct({
   index,
   size,
   reduced,
+  onSelect,
 }: {
   product: GiftProduct;
   index: number;
   size: "sm" | "md" | "lg";
   reduced: boolean;
+  onSelect?: (product: GiftProduct) => void;
 }) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const href = product.slug ? `/product/${product.slug}` : "/watches";
+  const ref = useRef<HTMLButtonElement>(null);
   const label = product.name || product.title || "Timect watch";
 
   useGSAP(
     () => {
       if (reduced || !ref.current) return;
       const img = ref.current.querySelector(".float-product__img");
-      // Idle breath
+      // Idle breath (kept small so products stay fully in frame)
       gsap.to(ref.current, {
-        y: index % 2 === 0 ? -7 : 7,
+        y: index % 2 === 0 ? -4 : 4,
         duration: 5 + (index % 5) * 0.55,
         ease: EASE.soft,
         yoyo: true,
@@ -447,8 +579,8 @@ function FloatProduct({
     const field = ref.current.closest(".floating-gift-field") as HTMLElement | null;
     if (field) field.dataset.productHover = "1";
     gsap.to(ref.current, {
-      scale: 1.14,
-      y: -14,
+      scale: 1.1,
+      y: -8,
       duration: 0.5,
       ease: EASE.out,
       overwrite: "auto",
@@ -496,12 +628,13 @@ function FloatProduct({
   };
 
   return (
-    <Link
+    <button
       ref={ref}
-      href={href}
-      className={`float-product float-product--${size}`}
+      type="button"
+      className={`float-product float-product--${size} cursor-pointer`}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
+      onClick={() => onSelect?.(product)}
       draggable={false}
       aria-label={`${label} — ${product.price}`}
     >
@@ -524,6 +657,6 @@ function FloatProduct({
         <em>{label}</em>
         <span>{product.price}</span>
       </span>
-    </Link>
+    </button>
   );
 }
