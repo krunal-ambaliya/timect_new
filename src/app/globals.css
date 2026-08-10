@@ -41,7 +41,24 @@ body {
   background-color: #ffffff;
 }
 
+/* All interactive buttons use the pointer cursor */
+button,
+[type="button"],
+[type="submit"],
+[type="reset"],
+.btn-outline,
+[role="button"] {
+  cursor: pointer;
+}
 
+button:disabled,
+button[disabled],
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
 
 .serif {
   font-family: var(--font-cormorant), serif;
@@ -2347,6 +2364,7 @@ html:has(.cg-gifts-omega) {
   overflow: hidden;
   white-space: nowrap;
   z-index: 1;
+  cursor: pointer;
   transition:
     color 0.4s,
     background-color 0.4s,

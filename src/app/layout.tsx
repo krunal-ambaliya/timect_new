@@ -18,6 +18,17 @@ const jost = Jost({
 export const metadata: Metadata = {
   title: "Timect - Official Online Store",
   description: "Celebrating 145 Years of Craftsmanship",
+  icons: {
+    icon: [
+      { url: "/images/timect_logo.png", type: "image/png" },
+      {
+        url: "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048492/timect/timect_logo.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/images/timect_logo.png",
+    apple: "/images/timect_logo.png",
+  },
 };
 
 export default function RootLayout({

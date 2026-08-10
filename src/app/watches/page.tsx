@@ -16,11 +16,19 @@ import {
 } from "@/lib/catalog-image";
 import { signalPageReady } from "@/lib/page-ready";
 import {
+  LucideCheck,
+  LucideChevronDown,
   LucideSearch,
   LucideSlidersHorizontal,
   LucideStar,
   LucideX,
 } from "lucide-react";
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "price-asc", label: "Price: Low to High" },
+  { value: "price-desc", label: "Price: High to Low" },
+] as const;
 
 const DEFAULT_PRICE_MAX = 250000;
 /** Page size — first batch paints as soon as text data returns */
@@ -229,6 +237,23 @@ function WatchesCatalogContent() {
   const [activeCategory, setActiveCategory] = useState<string>(urlCategory);
   const [activeFilter, setActiveFilter] = useState<string>(urlFilter);
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  // Close sort dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setSortOpen(false);
+      }
+    }
+    if (sortOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sortOpen]);
 
   // Debounced filters for API requests
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -528,31 +553,6 @@ function WatchesCatalogContent() {
       <Header />
 
       <main className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top bar categories */}
-        <div className="flex items-center justify-between md:justify-end gap-4 border-b border-gray-200 pb-6 mb-8">
-          <button
-            onClick={() => setMobileSidebarOpen(true)}
-            className="lg:hidden flex items-center gap-2 bg-white px-4 py-2 border border-gray-200 rounded-md text-xs font-bold tracking-wider hover:border-black transition"
-          >
-            <LucideSlidersHorizontal className="h-4 w-4" />
-            Filters
-          </button>
-
-          {/* Sort Select */}
-          <div className="flex items-center gap-2 bg-white px-3 py-2 border border-gray-200 rounded-md">
-            <span className="text-xs text-gray-500 font-medium">Sort:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="text-xs font-bold bg-transparent outline-none cursor-pointer text-gray-800"
-            >
-              <option value="newest">Newest</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-            </select>
-          </div>
-        </div>
-
         {/* Content Area */}
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar Filters - Desktop */}
@@ -698,24 +698,96 @@ function WatchesCatalogContent() {
 
           {/* Catalog Grid */}
           <div className="lg:col-span-3">
-            {/* Active filters status / Results count */}
+            {/* Active filters status / Results count & Sort */}
             <div className="flex flex-col gap-3 mb-6 px-1">
-              <p className="text-xs text-gray-500 font-medium flex items-center gap-2 flex-wrap">
-                <span>
-                  Showing{" "}
-                  <span className="font-bold text-gray-900">
-                    {products.length}
-                    {hasMore ? "+" : ""}
-                  </span>{" "}
-                  luxury watches
-                </span>
-                {(loading || loadingMore) && (
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                    <span className="h-3 w-3 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
-                    Loading…
-                  </span>
-                )}
-              </p>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setMobileSidebarOpen(true)}
+                    className="lg:hidden flex items-center gap-2 bg-white px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold tracking-wider hover:border-black transition shadow-sm"
+                  >
+                    <LucideSlidersHorizontal className="h-4 w-4" />
+                    Filters
+                  </button>
+
+                  <p className="text-xs text-gray-500 font-medium flex items-center gap-2 flex-wrap">
+                    <span>
+                      Showing{" "}
+                      <span className="font-bold text-gray-900">
+                        {products.length}
+                        {hasMore ? "+" : ""}
+                      </span>{" "}
+                      luxury watches
+                    </span>
+                    {(loading || loadingMore) && (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                        <span className="h-3 w-3 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+                        Loading…
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                {/* Custom Luxury Sort Dropdown */}
+                <div className="relative" ref={sortRef}>
+                  <button
+                    type="button"
+                    onClick={() => setSortOpen((prev) => !prev)}
+                    className={`flex items-center gap-2 bg-white px-3.5 py-2 border rounded-xl text-xs shadow-sm transition-all duration-200 cursor-pointer select-none ${
+                      sortOpen
+                        ? "border-black ring-2 ring-black/5"
+                        : "border-gray-200 hover:border-gray-900"
+                    }`}
+                    aria-expanded={sortOpen}
+                    aria-haspopup="listbox"
+                  >
+                    <span className="text-gray-500 font-medium">Sort:</span>
+                    <span className="font-bold text-gray-900">
+                      {SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label ||
+                        "Newest"}
+                    </span>
+                    <LucideChevronDown
+                      className={`h-3.5 w-3.5 text-gray-500 transition-transform duration-200 ${
+                        sortOpen ? "rotate-180 text-black" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {sortOpen && (
+                    <div
+                      role="listbox"
+                      className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-gray-100 shadow-2xl py-1.5 z-40 ring-1 ring-black/5 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      {SORT_OPTIONS.map((option) => {
+                        const isSelected = sortBy === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            role="option"
+                            aria-selected={isSelected}
+                            type="button"
+                            onClick={() => {
+                              setSortBy(option.value);
+                              setSortOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-xs text-left transition-colors cursor-pointer ${
+                              isSelected
+                                ? "bg-slate-50 text-black font-bold"
+                                : "text-gray-600 hover:bg-slate-50 hover:text-black font-medium"
+                            }`}
+                          >
+                            <span>{option.label}</span>
+                            {isSelected && (
+                              <LucideCheck className="h-3.5 w-3.5 text-black ml-2 flex-shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {activeChips.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                   {activeChips.map((chip) => (
