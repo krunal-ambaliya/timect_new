@@ -79,6 +79,7 @@ button[disabled],
   align-items: center;
   justify-content: center;
   width: 100%;
+  overflow: hidden;
 }
 
 .watch-svg {
@@ -1186,6 +1187,7 @@ html:has(.cg-gifts-omega) {
   will-change: transform;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
+  contain: layout style;
 }
 
 .floating-row__track.is-static {
@@ -1312,7 +1314,6 @@ html:has(.cg-gifts-omega) {
   flex-shrink: 0;
   text-decoration: none;
   color: #111;
-  will-change: transform;
   transform: translate3d(0, 0, 0);
   background: none;
   border: none;
@@ -1386,13 +1387,48 @@ html:has(.cg-gifts-omega) {
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.12));
-  transition: filter 0.5s var(--ease-lux);
+  transition: filter 0.4s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
-  will-change: transform;
+}
+
+.float-product--live {
+  animation: float-breathe 6.4s ease-in-out infinite;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.float-product--live:nth-child(odd) {
+  animation-duration: 7.2s;
+  animation-delay: -1.4s;
+}
+
+.float-product--live:nth-child(3n) {
+  animation-duration: 5.6s;
+  animation-delay: -2.2s;
+}
+
+@keyframes float-breathe {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+.float-product:hover {
+  z-index: 4;
+  transform: translate3d(0, -8px, 0) scale(1.08);
+  animation-play-state: paused;
 }
 
 .float-product:hover .float-product__img {
   filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.2));
+}
+
+.float-product:hover .float-product__label {
+  opacity: 1;
+  transform: translate(-50%, 8px);
 }
 
 .float-product__label {
@@ -1411,6 +1447,9 @@ html:has(.cg-gifts-omega) {
   padding: 0.35rem 0.55rem 0.4rem;
   border-radius: 2px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
 }
 
 .float-product__label em {
@@ -1435,7 +1474,8 @@ html:has(.cg-gifts-omega) {
 
 @media (prefers-reduced-motion: reduce) {
   .orbital-ring--a,
-  .orbital-ring--b {
+  .orbital-ring--b,
+  .float-product--live {
     animation: none;
   }
   .floating-gift-field {
@@ -2668,7 +2708,8 @@ html:has(.cg-gifts-omega) {
   .hero-scroll-cue__line,
   .route-preloader-logo,
   .route-preloader-line,
-  .product-hover-crossfade {
+  .product-hover-crossfade,
+  .hover-swap__img {
     animation: none !important;
     transition: none !important;
   }
@@ -2682,7 +2723,8 @@ html:has(.cg-gifts-omega) {
   .btn-lux,
   .btn-lux-ghost,
   .cat-tile img,
-  .group.cursor-pointer {
+  .prod-item,
+  .product-card-enter {
     transition: none !important;
   }
 }
@@ -2913,12 +2955,14 @@ html:has(.cg-gifts-omega) {
   z-index: 3;
 }
 
-/* Product Card Hover Effects */
-.group.cursor-pointer {
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+/* Product Card Hover Effects — gentle lift, never a popup jump */
+.prod-item,
+.product-card-enter {
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.group.cursor-pointer:hover {
-  transform: translateY(-8px);
+.prod-item:hover,
+.product-card-enter:hover {
+  transform: translateY(-4px);
 }
 .group.cursor-pointer:hover .price {
   color: #555;
@@ -3074,7 +3118,7 @@ html:has(.cg-gifts-omega) {
 
 /* Global route transition preloader */
 .route-preloader {
-  transition: transform 0.42s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.35s ease;
+  transition: transform 0.38s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.32s ease;
 }
 .route-preloader--enter {
   transform: translateY(0);
@@ -3082,7 +3126,7 @@ html:has(.cg-gifts-omega) {
 }
 .route-preloader--exit {
   transform: translateY(-100%);
-  opacity: 0.96;
+  opacity: 0;
   pointer-events: none;
 }
 .route-preloader-logo {
@@ -3110,9 +3154,46 @@ html:has(.cg-gifts-omega) {
   }
 }
 
-/* Smooth product hover image crossfade */
+/* Product hover: opacity-only crossfade (no scale / crop change) */
+.hover-swap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hover-swap__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.hover-swap__img--base {
+  opacity: 1;
+  z-index: 1;
+}
+
+.hover-swap__img--alt {
+  opacity: 0;
+  z-index: 2;
+}
+
+.group:hover .hover-swap__img--base,
+.group\/card:hover .hover-swap__img--base,
+.hover-swap:hover .hover-swap__img--base {
+  opacity: 0;
+}
+
+.group:hover .hover-swap__img--alt,
+.group\/card:hover .hover-swap__img--alt,
+.hover-swap:hover .hover-swap__img--alt {
+  opacity: 1;
+}
+
 .product-hover-crossfade {
-  transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.5s ease-in-out;
 }
 
 /* Header Scrolled State */

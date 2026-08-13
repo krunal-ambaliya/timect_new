@@ -10,10 +10,8 @@ import {
   getCatalogFilterLabel,
   SHOP_BY_CATEGORY,
 } from "@/data/categoryFilters";
-import {
-  catalogThumbUrl,
-  CATALOG_FALLBACK_IMAGE,
-} from "@/lib/catalog-image";
+import { catalogThumbUrl } from "@/lib/catalog-image";
+import HoverSwapImage from "@/components/product/HoverSwapImage";
 import { signalPageReady } from "@/lib/page-ready";
 import {
   LucideCheck,
@@ -80,50 +78,22 @@ function ProgressiveImage({
   const primary = catalogThumbUrl(src);
   const hover = hoverSrc ? catalogThumbUrl(hoverSrc, 480) : "";
   const [primaryLoaded, setPrimaryLoaded] = useState(false);
-  const [hoverLoaded, setHoverLoaded] = useState(false);
 
   return (
     <div className="relative aspect-square w-full bg-slate-100 rounded-xl mb-4 overflow-hidden">
-      {/* Soft placeholder until the photo decodes */}
       <div
         className={`absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 product-hover-crossfade ${
           primaryLoaded ? "opacity-0" : "opacity-100"
         }`}
         aria-hidden
       />
-
-      <img
+      <HoverSwapImage
         src={primary}
+        hoverSrc={hover}
         alt={alt}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        fetchPriority={priority ? "high" : "auto"}
-        onLoad={() => setPrimaryLoaded(true)}
-        onError={(e) => {
-          const el = e.currentTarget;
-          if (el.src !== CATALOG_FALLBACK_IMAGE) {
-            el.src = CATALOG_FALLBACK_IMAGE;
-          } else {
-            setPrimaryLoaded(true);
-          }
-        }}
-        className={`product-hover-crossfade absolute inset-0 w-full h-full object-contain pointer-events-none ${
-          primaryLoaded ? "opacity-100" : "opacity-0"
-        } ${hover ? "group-hover:opacity-0" : ""}`}
+        priority={priority}
+        onPrimaryLoad={() => setPrimaryLoaded(true)}
       />
-
-      {hover ? (
-        <img
-          src={hover}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          onLoad={() => setHoverLoaded(true)}
-          className={`product-hover-crossfade absolute inset-0 w-full h-full object-cover pointer-events-none opacity-0 group-hover:opacity-100 ${
-            hoverLoaded ? "" : ""
-          }`}
-        />
-      ) : null}
     </div>
   );
 }
@@ -302,14 +272,6 @@ function WatchesCatalogContent() {
     if (gender && ["Men", "Women", "Unisex"].includes(gender)) {
       setSelectedGenders([gender]);
     }
-    // Always land at top when arriving with gender / filter query (For Him / For Her)
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    const t = setTimeout(() => {
-      window.scrollTo(0, 0);
-    }, 100);
-    return () => clearTimeout(t);
   }, [searchParams]);
 
   const filterKey = [

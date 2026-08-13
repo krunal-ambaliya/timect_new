@@ -1,43 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
-function scrollWindowToTop() {
-  if (typeof window === "undefined") return;
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-}
+import { saveScrollForCurrent } from "@/lib/scroll-memory";
 
 export default function ForHimHer() {
-  const router = useRouter();
-
-  const goToGender = (gender: "Men" | "Women") => (e: React.MouseEvent) => {
-    e.preventDefault();
-    scrollWindowToTop();
-    // Persist so the destination page also lands at top even if Lenis/browser restore scroll
-    try {
-      sessionStorage.setItem("timect:scroll-top", "1");
-    } catch {
-      /* ignore */
-    }
-    router.push(`/watches?gender=${gender}`);
-    // Next paint after navigation often restores scroll — force again
-    requestAnimationFrame(() => {
-      scrollWindowToTop();
-      setTimeout(scrollWindowToTop, 50);
-      setTimeout(scrollWindowToTop, 200);
-      setTimeout(scrollWindowToTop, 500);
-    });
-  };
-
   return (
-    <section className="max-w-[1400px] mx-auto px-8 pb-16">
+    <section
+      id="for-him-her"
+      className="max-w-[1400px] mx-auto px-8 pb-16"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link
           href="/watches?gender=Men"
-          onClick={goToGender("Men")}
+          scroll={false}
+          onClick={saveScrollForCurrent}
           className="relative h-[420px] flex items-end justify-start p-8 group cursor-pointer"
           style={{ background: "linear-gradient(160deg,#d9d9d9,#bbb)" }}
         >
@@ -46,16 +22,23 @@ export default function ForHimHer() {
             alt="For Him"
             className="absolute inset-0 w-full h-full object-cover opacity-60 transition-opacity duration-500 group-hover:opacity-70"
           />
-          <div className="relative z-10">
-            <div className="text-[20px] tracked-sm">FOR HIM</div>
-            <div className="text-[12px] tracked-sm mt-1 underline">
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+            aria-hidden
+          />
+          <div className="relative z-10 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+            <div className="text-[18px] font-semibold tracked-sm">
+              FOR HIM
+            </div>
+            <div className="text-[11px] font-medium tracked-sm mt-1.5 underline underline-offset-4">
               EXPLORE ›
             </div>
           </div>
         </Link>
         <Link
           href="/watches?gender=Women"
-          onClick={goToGender("Women")}
+          scroll={false}
+          onClick={saveScrollForCurrent}
           className="relative h-[420px] flex items-end justify-start p-8 group cursor-pointer"
           style={{ background: "linear-gradient(160deg,#2a2a2a,#000)" }}
         >
@@ -64,9 +47,15 @@ export default function ForHimHer() {
             alt="For Her"
             className="absolute inset-0 w-full h-full object-cover opacity-60 transition-opacity duration-500 group-hover:opacity-70"
           />
-          <div className="relative z-10">
-            <div className="text-[20px] tracked-sm text-white">FOR HER</div>
-            <div className="text-[12px] tracked-sm mt-1 underline text-white">
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+            aria-hidden
+          />
+          <div className="relative z-10 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+            <div className="text-[18px] font-semibold tracked-sm">
+              FOR HER
+            </div>
+            <div className="text-[11px] font-medium tracked-sm mt-1.5 underline underline-offset-4">
               EXPLORE ›
             </div>
           </div>

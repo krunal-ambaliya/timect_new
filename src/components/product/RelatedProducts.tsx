@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import Image from 'next/image';
+import HoverSwapImage from '@/components/product/HoverSwapImage';
 import { getRelatedProducts, Product } from '@/db/actions';
 import { useRouter } from 'next/navigation';
 
@@ -156,34 +156,12 @@ export default function RelatedProducts() {
             >
               {/* Product Image Container */}
               <div className="relative aspect-square w-full bg-gray-50 mb-4 overflow-hidden">
-                {product.hoverImage ? (
-                  <>
-                    <Image
-                      src={product.image || ''}
-                      alt={product.collection || 'Related Product'}
-                      fill
-                      className="object-contain transition-opacity duration-500 group-hover:opacity-0"
-                      sizes="(max-width: 768px) 100vw, 280px"
-                      priority={product.id <= 3}
-                    />
-                    <Image
-                      src={product.hoverImage}
-                      alt={`${product.collection || 'Related Product'} hover`}
-                      fill
-                      className="object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                      sizes="(max-width: 768px) 100vw, 280px"
-                    />
-                  </>
-                ) : (
-                  <Image
-                    src={product.image || ''}
-                    alt={product.collection || 'Related Product'}
-                    fill
-                    className="object-contain"
-                    sizes="(max-width: 768px) 100vw, 280px"
-                    priority={product.id <= 3}
-                  />
-                )}
+                <HoverSwapImage
+                  src={product.image}
+                  hoverSrc={product.hoverImage}
+                  alt={product.collection || 'Related Product'}
+                  priority={product.id <= 3}
+                />
               </div>
               
               {/* Product Metadata */}

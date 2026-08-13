@@ -1,54 +1,71 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import {
+  applyScroll,
+  applyScrollTop,
+  consumePopNav,
+  getSavedScroll,
+  routeKey,
+  saveScrollForCurrent,
+} from "@/lib/scroll-memory";
 
-function scrollWindowToTop() {
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-  // Some layouts use a scrollable main
+function pinScroll(y: number) {
+  applyScroll(y);
   const main = document.querySelector("main");
-  if (main) main.scrollTop = 0;
+  if (main) main.scrollTop = y === 0 ? 0 : main.scrollTop;
 }
 
-/** Scroll window to top on every storefront navigation (path or query change). */
+/**
+ * Forward nav (For Him / For Her, etc.) always lands at the top.
+ * Browser back/forward restores the scroll where the user last was.
+ */
 export default function ScrollToTop() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const qs = searchParams?.toString() ?? "";
 
   useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+      if (anchor.origin !== window.location.origin) return;
+      saveScrollForCurrent();
+    };
+
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Stop browser restoring previous scroll position
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
 
-    scrollWindowToTop();
-    const raf = requestAnimationFrame(scrollWindowToTop);
-    const t0 = setTimeout(scrollWindowToTop, 0);
-    const t1 = setTimeout(scrollWindowToTop, 100);
-    // After Timect preloader exit (~500ms+) pages can reflow mid-scroll
-    const t2 = setTimeout(scrollWindowToTop, 450);
-    const t3 = setTimeout(scrollWindowToTop, 800);
+    const popped = consumePopNav();
+    const key = routeKey(pathname, qs ? `?${qs}` : "");
+    const restored = popped ? (getSavedScroll(key) ?? 0) : 0;
 
-    try {
-      if (sessionStorage.getItem("timect:scroll-top") === "1") {
-        sessionStorage.removeItem("timect:scroll-top");
-        scrollWindowToTop();
-      }
-    } catch {
-      /* ignore */
-    }
+    const apply = () => pinScroll(restored);
+
+    apply();
+    const raf = requestAnimationFrame(apply);
+    const delays = popped ? [50, 160] : [50, 200, 420];
+    const timers = delays.map((ms) => setTimeout(apply, ms));
 
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(t0);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
+      timers.forEach(clearTimeout);
     };
   }, [pathname, qs]);
 

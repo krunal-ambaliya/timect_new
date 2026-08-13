@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Button from "@/components/Button";
+import HoverSwapImage from "@/components/product/HoverSwapImage";
 import { getRecommended, Product } from "@/db/actions";
 import { useRouter } from "next/navigation";
 
@@ -10,6 +11,10 @@ export default function Recommended({ products: initialProducts }: { products?: 
   const defaultImage =
     "https://res.cloudinary.com/dphscxzb4/image/upload/v1784048484/timect/right-main.png";
   const [mainImage, setMainImage] = useState(defaultImage);
+  const [layerA, setLayerA] = useState(defaultImage);
+  const [layerB, setLayerB] = useState(defaultImage);
+  const [showB, setShowB] = useState(false);
+  const showBRef = useRef(false);
   const [products, setProducts] = useState<Product[]>(initialProducts || []);
 
   useEffect(() => {
@@ -19,6 +24,20 @@ export default function Recommended({ products: initialProducts }: { products?: 
       getRecommended().then(setProducts);
     }
   }, [initialProducts]);
+
+  useEffect(() => {
+    const active = showBRef.current ? layerB : layerA;
+    if (mainImage === active) return;
+    if (showBRef.current) {
+      setLayerA(mainImage);
+      showBRef.current = false;
+      setShowB(false);
+    } else {
+      setLayerB(mainImage);
+      showBRef.current = true;
+      setShowB(true);
+    }
+  }, [mainImage, layerA, layerB]);
 
   return (
     <section className="grid md:grid-cols-2 gap-0 mb-16">
@@ -32,10 +51,18 @@ export default function Recommended({ products: initialProducts }: { products?: 
         }}
       >
         <img
-          src={mainImage}
+          src={layerA}
+          alt=""
+          className={`absolute inset-0 w-full h-full object-cover product-hover-crossfade ${
+            showB ? "opacity-0" : "opacity-100"
+          }`}
+        />
+        <img
+          src={layerB}
           alt="Featured Watch"
-          className="absolute inset-0 w-full h-full transition-all duration-300"
-          style={{ objectFit: "cover" }}
+          className={`absolute inset-0 w-full h-full object-cover product-hover-crossfade ${
+            showB ? "opacity-100" : "opacity-0"
+          }`}
         />
       </div>
 
@@ -55,26 +82,12 @@ export default function Recommended({ products: initialProducts }: { products?: 
               onClick={() => router.push(`/product/${product.slug}`)}
             >
               <div className="watch-wrap relative overflow-hidden">
-                {product.hoverImage ? (
-                  <>
-                    <img
-                      src={product.image || ""}
-                      alt={product.name || ""}
-                      className="product-hover-crossfade absolute inset-0 w-full h-full object-contain group-hover:opacity-0 pointer-events-none"
-                    />
-                    <img
-                      src={product.hoverImage}
-                      alt={`${product.name || ""} hover`}
-                      className="product-hover-crossfade absolute inset-0 w-full h-full object-contain opacity-0 group-hover:opacity-100 pointer-events-none"
-                    />
-                  </>
-                ) : (
-                  <img
-                    src={product.image || ""}
-                    alt={product.name || ""}
-                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                  />
-                )}
+                <HoverSwapImage
+                  src={product.image}
+                  hoverSrc={product.hoverImage}
+                  alt={product.name || ""}
+                  priority
+                />
               </div>
               <div
                 className="mt-2 prod-name truncate"

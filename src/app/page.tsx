@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -17,20 +17,44 @@ import ShopByCategory from "@/components/ShopByCategory";
 import ForHimHer from "@/components/ForHimHer";
 import Quote from "@/components/Quote";
 import Footer from "@/components/Footer";
+import {
+  applyScroll,
+  getSavedScroll,
+  isPopNav,
+} from "@/lib/scroll-memory";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
+let homeCatalogCache: { arrivals: Product[]; recs: Product[] } | null = null;
+
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [productsLoaded, setProductsLoaded] = useState(false);
-  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
-  const [recommended, setRecommended] = useState<Product[]>([]);
+  const lenisRef = useRef<Lenis | null>(null);
+  const [skipIntro] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return isPopNav() && getSavedScroll("/") != null;
+  });
+  const [productsLoaded, setProductsLoaded] = useState(
+    () => homeCatalogCache != null,
+  );
+  const [newArrivals, setNewArrivals] = useState<Product[]>(
+    () => homeCatalogCache?.arrivals ?? [],
+  );
+  const [recommended, setRecommended] = useState<Product[]>(
+    () => homeCatalogCache?.recs ?? [],
+  );
 
-  const productsLoadedRef = useRef(false);
+  const productsLoadedRef = useRef(productsLoaded);
   const introFinishedRef = useRef(false);
   const triggerExitRef = useRef<() => void>(() => {});
+
+  useLayoutEffect(() => {
+    if (!skipIntro) return;
+    const y = getSavedScroll("/") ?? 0;
+    applyScroll(y);
+  }, [skipIntro]);
 
   useEffect(() => {
     productsLoadedRef.current = productsLoaded;
@@ -38,8 +62,18 @@ export default function Home() {
   }, [productsLoaded]);
 
   useEffect(() => {
+    if (skipIntro && productsLoaded) {
+      const y = getSavedScroll("/") ?? 0;
+      applyScroll(y);
+      lenisRef.current?.scrollTo(y, { immediate: true });
+    }
+  }, [skipIntro, productsLoaded]);
+
+  useEffect(() => {
+    if (homeCatalogCache) return;
     Promise.all([getNewArrivals(), getRecommended()])
       .then(([arrivals, recs]) => {
+        homeCatalogCache = { arrivals, recs };
         setNewArrivals(arrivals);
         setRecommended(recs);
         setProductsLoaded(true);
@@ -64,11 +98,13 @@ export default function Home() {
       infinite: false,
     } as any);
 
+    lenisRef.current = lenis;
     lenis.on("scroll", ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    const onTicker = (time: number) => {
       lenis.raf(time * 1000);
-    });
+    };
+    gsap.ticker.add(onTicker);
     gsap.ticker.lagSmoothing(0);
 
     // Elements
@@ -83,44 +119,23 @@ export default function Home() {
     const scrollProgress = document.querySelector(".scroll-progress");
     const backToTop = document.querySelector(".back-to-top");
 
-    // Initial States
-    gsap.set(header, { yPercent: -100, opacity: 0 });
-    gsap.set(heroHeading, { autoAlpha: 0, y: 30 });
-    gsap.set(heroText, { autoAlpha: 0, y: 30 });
-    gsap.set(heroBtn, { autoAlpha: 0, y: 30 });
-    gsap.set(heroImg, { scale: 1.08, opacity: 0 });
-    gsap.set(".heroDot", { autoAlpha: 0, x: -20 });
-
-    gsap.set(".prod-item", { opacity: 0, y: 40 });
-    gsap.set(".cat-tile", { clipPath: "polygon(0 0, 100% 0, 100% 0, 0 0)" });
-    gsap.set("footer .footer-col", { opacity: 0, y: 20 });
-    document.querySelectorAll(".bg-\\[\\#f4f4f2\\] *").forEach((el) => {
-      if (el.tagName !== "IMG") gsap.set(el, { opacity: 0, y: 20 });
-    });
-
-    // Timect preloader on every homepage visit (waits for intro + product API)
-    const checkAndExit = () => {
-      if (introFinishedRef.current && productsLoadedRef.current) {
-        playExitAnimation();
-      }
+    const showPageFully = () => {
+      gsap.set(header, { yPercent: 0, opacity: 1 });
+      gsap.set(heroHeading, { autoAlpha: 1, y: 0 });
+      gsap.set(heroText, { autoAlpha: 1, y: 0 });
+      gsap.set(heroBtn, { autoAlpha: 1, y: 0 });
+      gsap.set(heroImg, { scale: 1, opacity: 1 });
+      gsap.set(".heroDot", { autoAlpha: 1, x: 0 });
+      gsap.set(".prod-item", { opacity: 1, y: 0 });
+      gsap.set(".cat-tile", {
+        clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+      });
+      gsap.set("footer .footer-col", { opacity: 1, y: 0 });
+      document.querySelectorAll(".bg-\\[\\#f4f4f2\\] *").forEach((el) => {
+        if (el.tagName !== "IMG") gsap.set(el, { opacity: 1, y: 0 });
+      });
+      if (preloader) gsap.set(preloader, { yPercent: -100, autoAlpha: 0 });
     };
-
-    triggerExitRef.current = checkAndExit;
-
-    const tlPreload = gsap.timeline({
-      onComplete: () => {
-        introFinishedRef.current = true;
-        checkAndExit();
-      },
-    });
-
-    tlPreload
-      .to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: "power2.out" })
-      .to(
-        preloaderLine,
-        { scaleX: 1, duration: 1.2, ease: "expo.inOut" },
-        "-=0.3"
-      );
 
     function playExitAnimation() {
       const tlExit = gsap.timeline();
@@ -301,6 +316,51 @@ export default function Home() {
       });
     }
 
+    if (skipIntro) {
+      showPageFully();
+      const y = getSavedScroll("/") ?? 0;
+      applyScroll(y);
+      lenis.scrollTo(y, { immediate: true });
+      initScrollAnimations();
+    } else {
+      gsap.set(header, { yPercent: -100, opacity: 0 });
+      gsap.set(heroHeading, { autoAlpha: 0, y: 30 });
+      gsap.set(heroText, { autoAlpha: 0, y: 30 });
+      gsap.set(heroBtn, { autoAlpha: 0, y: 30 });
+      gsap.set(heroImg, { scale: 1.08, opacity: 0 });
+      gsap.set(".heroDot", { autoAlpha: 0, x: -20 });
+
+      gsap.set(".prod-item", { opacity: 0, y: 40 });
+      gsap.set(".cat-tile", { clipPath: "polygon(0 0, 100% 0, 100% 0, 0 0)" });
+      gsap.set("footer .footer-col", { opacity: 0, y: 20 });
+      document.querySelectorAll(".bg-\\[\\#f4f4f2\\] *").forEach((el) => {
+        if (el.tagName !== "IMG") gsap.set(el, { opacity: 0, y: 20 });
+      });
+
+      const checkAndExit = () => {
+        if (introFinishedRef.current && productsLoadedRef.current) {
+          playExitAnimation();
+        }
+      };
+
+      triggerExitRef.current = checkAndExit;
+
+      const tlPreload = gsap.timeline({
+        onComplete: () => {
+          introFinishedRef.current = true;
+          checkAndExit();
+        },
+      });
+
+      tlPreload
+        .to(preloaderLogo, { autoAlpha: 1, duration: 0.6, ease: "power2.out" })
+        .to(
+          preloaderLine,
+          { scaleX: 1, duration: 1.2, ease: "expo.inOut" },
+          "-=0.3"
+        );
+    }
+
     // Button Press Animation
     const allButtons = document.querySelectorAll("button");
     const onMouseDown = (e: Event) =>
@@ -324,14 +384,16 @@ export default function Home() {
         btn.removeEventListener("mouseup", onMouseUp);
         btn.removeEventListener("mouseleave", onMouseUp);
       });
+      gsap.ticker.remove(onTicker);
       lenis.destroy();
+      lenisRef.current = null;
     };
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [skipIntro] });
 
   return (
     <div ref={containerRef}>
       <div className="scroll-progress"></div>
-      <Preloader />
+      {!skipIntro && <Preloader />}
       <div className="back-to-top">↑</div>
       <Header />
       <Hero />

@@ -1,41 +1,76 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { PAGE_READY_EVENT } from "@/lib/page-ready";
-
-function shouldShowPreloader(pathname: string | null) {
-  if (!pathname) return false;
-  if (pathname.startsWith("/admin")) return false;
-  // Home has its own GSAP Timect preloader
-  if (pathname === "/") return false;
-  return true;
-}
+import {
+  clearRouteCover,
+  getPendingRouteCover,
+  shouldCoverPath,
+  startRouteCover,
+  subscribeRouteCover,
+} from "@/lib/route-cover";
 
 /**
- * Timect logo preloader — visible on first paint for storefront routes.
+ * Timect logo overlay — covers the outgoing page on click, then the incoming
+ * route, so client navigations never flash a scroll-jump or empty catalog.
  * Does NOT use useSearchParams (that suspends and lets content flash first).
- * Exits only after the page signals data-ready (or max timeout).
  */
 export default function RoutePreloader() {
   const pathname = usePathname();
-  const active = shouldShowPreloader(pathname);
+  const pendingPath = useSyncExternalStore(
+    subscribeRouteCover,
+    getPendingRouteCover,
+    () => null,
+  );
 
-  // Start visible immediately so hard reload never paints page content first
-  const [visible, setVisible] = useState(active);
+  const covering =
+    shouldCoverPath(pathname) || shouldCoverPath(pendingPath);
+  const sessionKey = pendingPath ?? (shouldCoverPath(pathname) ? pathname : "");
+
   const [exiting, setExiting] = useState(false);
+  const [hiddenSession, setHiddenSession] = useState<string | null>(null);
+
+  // Visible on the same render as startRouteCover() — no useEffect flash.
+  const visible =
+    Boolean(sessionKey) &&
+    covering &&
+    (exiting || hiddenSession !== sessionKey);
+
+  // Intercept in-app clicks so the overlay covers the CURRENT view
+  // (For Him / For Her, Shop by Category, header) before the route swaps.
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+
+      if (anchor.origin !== window.location.origin) return;
+      startRouteCover(`${anchor.pathname}${anchor.search}`);
+    };
+
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
 
   useEffect(() => {
-    if (!active) {
-      setVisible(false);
+    if (!covering) {
       setExiting(false);
+      setHiddenSession(null);
       return;
     }
 
-    setExiting(false);
-    setVisible(true);
+    if (!sessionKey || hiddenSession === sessionKey) return;
 
-    const minMs = 500;
+    setExiting(false);
+
+    const minMs = 320;
     const maxMs = 4000;
     const started = Date.now();
     let pageReady = false;
@@ -49,9 +84,10 @@ export default function RoutePreloader() {
       closed = true;
       setExiting(true);
       exitTimer = setTimeout(() => {
-        setVisible(false);
+        setHiddenSession(sessionKey);
         setExiting(false);
-      }, 420);
+        clearRouteCover();
+      }, 380);
     };
 
     const tryHide = () => {
@@ -68,7 +104,6 @@ export default function RoutePreloader() {
 
     window.addEventListener(PAGE_READY_EVENT, onReady);
 
-    // Fallback if a page forgets to signal
     hardTimer = setTimeout(() => {
       pageReady = true;
       hide();
@@ -80,9 +115,9 @@ export default function RoutePreloader() {
       if (hardTimer) clearTimeout(hardTimer);
       if (minTimer) clearTimeout(minTimer);
     };
-  }, [pathname, active]);
+  }, [sessionKey, covering, hiddenSession]);
 
-  if (!active || !visible) return null;
+  if (!visible) return null;
 
   return (
     <div

@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Button from "@/components/Button";
+import HoverSwapImage from "@/components/product/HoverSwapImage";
 import { getNewArrivals, Product } from "@/db/actions";
 import { useRouter } from "next/navigation";
 
@@ -162,26 +163,11 @@ export default function NewArrivals({ products: initialProducts }: { products?: 
               className="text-center w-[calc((100vw-48px)/2)] sm:w-[240px] md:w-[280px] flex-shrink-0 group/card cursor-pointer snap-start"
             >
               <div className="watch-wrap relative transition mb-4 md:mb-6 bg-white overflow-hidden">
-                {product.hoverImage ? (
-                  <>
-                    <img
-                      src={product.image || ""}
-                      alt={product.name || ""}
-                      className="product-hover-crossfade absolute inset-0 w-full h-full object-contain group-hover/card:opacity-0 pointer-events-none"
-                    />
-                    <img
-                      src={product.hoverImage}
-                      alt={`${product.name || ""} hover`}
-                      className="product-hover-crossfade absolute inset-0 rounded-lg w-full h-full object-cover opacity-0 group-hover/card:opacity-100 pointer-events-none"
-                    />
-                  </>
-                ) : (
-                  <img
-                    src={product.image || ""}
-                    alt={product.name || ""}
-                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                  />
-                )}
+                <HoverSwapImage
+                  src={product.image}
+                  hoverSrc={product.hoverImage}
+                  alt={product.name || ""}
+                />
               </div>
               <div className="space-y-2 px-2 pointer-events-none">
                 <div className="text-[13px] text-gray-800 leading-5 line-clamp-2 h-10 overflow-hidden">
