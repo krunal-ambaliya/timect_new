@@ -367,6 +367,7 @@ export default function ProductForm({
           <VariantEditor
             variants={data.variants || []}
             onChange={(variants) => patch({ variants })}
+            currentSlug={displaySlug}
           />
         )}
 

@@ -70,6 +70,95 @@ const POWER_PRESETS = [
   "5 days",
 ];
 
+function caseInsensitiveMatch(value: string, presets: string[]): string | null {
+  const needle = value.trim().toLowerCase();
+  if (!needle) return null;
+  return presets.find((p) => p.toLowerCase() === needle) || null;
+}
+
+function parseMillimetres(value: string): number | null {
+  const match = value.replace(",", ".").match(/(\d+(?:\.\d+)?)\s*(?:mm)?/i);
+  if (!match) return null;
+  const n = parseFloat(match[1]);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseWaterMetres(value: string): number | null {
+  const lower = value.toLowerCase();
+  const metres = lower.match(/(\d+(?:\.\d+)?)\s*(?:m|meter|meters|metre|metres)\b/);
+  if (metres) {
+    const n = parseFloat(metres[1]);
+    return Number.isFinite(n) ? n : null;
+  }
+  const pressure = lower.match(/(\d+(?:\.\d+)?)\s*(?:atm|bar)\b/);
+  if (pressure) {
+    const n = parseFloat(pressure[1]);
+    return Number.isFinite(n) ? n * 10 : null;
+  }
+  return null;
+}
+
+function matchDimension(value: string, presets: string[]): string {
+  const exact = caseInsensitiveMatch(value, presets);
+  if (exact) return exact;
+  const mm = parseMillimetres(value);
+  if (mm == null) return value;
+  const hit = presets.find((p) => parseMillimetres(p) === mm);
+  return hit || value;
+}
+
+function matchWater(value: string, presets: string[]): string {
+  const exact = caseInsensitiveMatch(value, presets);
+  if (exact) return exact;
+  const metres = parseWaterMetres(value);
+  if (metres == null) return value;
+  const hit = presets.find((p) => parseWaterMetres(p) === metres);
+  return hit || value;
+}
+
+function matchMaterial(value: string, presets: string[]): string {
+  const exact = caseInsensitiveMatch(value, presets);
+  if (exact) return exact;
+  const n = value.trim().toLowerCase();
+  if (!n) return value;
+  if (n === "steel" || n === "ss") return "Stainless steel";
+  if (n.includes("ceramic") && n.includes("steel")) {
+    return (
+      presets.find((p) => {
+        const lower = p.toLowerCase();
+        return lower.includes("ceramic") && lower.includes("steel");
+      }) || value
+    );
+  }
+  if (n.includes("rose") && n.includes("steel")) {
+    return (
+      presets.find((p) => {
+        const lower = p.toLowerCase();
+        return lower.includes("rose gold") && lower.includes("steel");
+      }) || value
+    );
+  }
+  return value;
+}
+
+function matchGeneric(value: string, presets: string[]): string {
+  return caseInsensitiveMatch(value, presets) || value;
+}
+
+function uniqueOptions(presets: string[], extra: string): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const opt of [...presets, extra]) {
+    const trimmed = opt.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(trimmed);
+  }
+  return result;
+}
+
 interface WatchSpecs {
   // Case
   caseMaterial: string;
@@ -136,10 +225,10 @@ function parseSpecs(value: Specification[]): WatchSpecs {
         if (idx === -1) continue;
         const key = item.substring(0, idx).toLowerCase().trim();
         const val = item.substring(idx + 1).trim();
-        if (key === "material") specs.caseMaterial = val;
-        else if (key === "glass") specs.caseGlass = val;
-        else if (key === "dimension") specs.caseDimension = val;
-        else if (key === "water resistance") specs.caseWaterResistance = val;
+        if (key === "material") specs.caseMaterial = matchMaterial(val, MATERIAL_PRESETS);
+        else if (key === "glass") specs.caseGlass = matchGeneric(val, GLASS_PRESETS);
+        else if (key === "dimension") specs.caseDimension = matchDimension(val, DIMENSION_PRESETS);
+        else if (key === "water resistance") specs.caseWaterResistance = matchWater(val, WATER_PRESETS);
         else if (key === "thickness") specs.caseThickness = val;
         else if (key === "lug width") specs.caseLugWidth = val;
       }
@@ -162,15 +251,19 @@ function parseSpecs(value: Specification[]): WatchSpecs {
         if (idx === -1) continue;
         const key = item.substring(0, idx).toLowerCase().trim();
         const val = item.substring(idx + 1).trim();
-        if (key === "movement type") specs.movementType = val;
+        if (key === "movement type") specs.movementType = matchGeneric(val, MOVEMENT_PRESETS);
         else if (key === "caliber") specs.movementCaliber = val;
-        else if (key === "power reserve") specs.movementPowerReserve = val;
+        else if (key === "power reserve") specs.movementPowerReserve = matchGeneric(val, POWER_PRESETS);
         else if (key === "accuracy") specs.movementAccuracy = val;
         else if (key === "functions") {
-          specs.movementFunctions = val
-            .split(",")
-            .map((f) => f.trim())
-            .filter(Boolean);
+          specs.movementFunctions = [
+            ...new Set(
+              val
+                .split(",")
+                .map((f) => f.trim())
+                .filter(Boolean),
+            ),
+          ];
         }
       }
     } else if (title === "strap") {
@@ -185,7 +278,7 @@ function parseSpecs(value: Specification[]): WatchSpecs {
           return item.replace(/^Category:\s*/i, "").trim();
         })
         .filter(Boolean);
-      specs.styleCategories = cats;
+      specs.styleCategories = [...new Set(cats)];
     }
   }
 
@@ -592,15 +685,24 @@ const PresetDropdown = ({
   presets: string[];
   onChange: (val: string) => void;
 }) => {
-  const [options, setOptions] = useState(presets);
+  const [extras, setExtras] = useState<string[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [customVal, setCustomVal] = useState("");
 
-  useEffect(() => {
-    if (value && !options.includes(value)) {
-      setOptions((prev) => [...prev, value]);
+  const options = uniqueOptions([...presets, ...extras], value);
+
+  const commitCustom = () => {
+    const cleaned = customVal.trim();
+    if (!cleaned) return;
+    const matched =
+      caseInsensitiveMatch(cleaned, options) || cleaned;
+    if (!options.some((opt) => opt.toLowerCase() === matched.toLowerCase())) {
+      setExtras((prev) => uniqueOptions(prev, matched));
     }
-  }, [value, options]);
+    onChange(matched);
+    setCustomVal("");
+    setIsAdding(false);
+  };
 
   if (isAdding) {
     return (
@@ -619,32 +721,14 @@ const PresetDropdown = ({
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                if (customVal.trim()) {
-                  const cleaned = customVal.trim();
-                  if (!options.includes(cleaned)) {
-                    setOptions((prev) => [...prev, cleaned]);
-                  }
-                  onChange(cleaned);
-                  setCustomVal("");
-                  setIsAdding(false);
-                }
+                commitCustom();
               }
             }}
           />
           <button
             type="button"
             className="admin-btn admin-btn-primary px-3 text-xs shrink-0"
-            onClick={() => {
-              if (customVal.trim()) {
-                const cleaned = customVal.trim();
-                if (!options.includes(cleaned)) {
-                  setOptions((prev) => [...prev, cleaned]);
-                }
-                onChange(cleaned);
-                setCustomVal("");
-                setIsAdding(false);
-              }
-            }}
+            onClick={commitCustom}
           >
             Add
           </button>
@@ -676,8 +760,8 @@ const PresetDropdown = ({
           onChange={(e) => onChange(e.target.value)}
         >
           <option value="">-- Select --</option>
-          {options.map((opt) => (
-            <option key={opt} value={opt}>
+          {options.map((opt, index) => (
+            <option key={`${id}-${index}-${opt}`} value={opt}>
               {opt}
             </option>
           ))}
@@ -769,9 +853,9 @@ const ChipsEditor = ({
         </div>
         {values.length > 0 && (
           <div className="flex flex-wrap gap-1.5 p-2 bg-[var(--admin-bg)] border border-[var(--admin-line)] rounded-lg min-h-[42px]">
-            {values.map((v) => (
+            {values.map((v, index) => (
               <span
-                key={v}
+                key={`${id}-${index}-${v}`}
                 className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-full font-medium"
               >
                 {v}

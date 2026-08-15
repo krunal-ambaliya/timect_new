@@ -15,9 +15,11 @@ interface ProductOption {
 export default function VariantEditor({
   variants,
   onChange,
+  currentSlug,
 }: {
   variants: Variant[];
   onChange: (v: Variant[]) => void;
+  currentSlug?: string;
 }) {
   const [pickerFor, setPickerFor] = useState<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -71,7 +73,9 @@ export default function VariantEditor({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-[var(--admin-muted)]">
-          Unlimited color / finish variants with optional images
+          Link existing products as color / finish variants. On save, this
+          product is added to each linked product, and they are linked to each
+          other.
         </p>
         <button type="button" className="admin-btn admin-btn-primary" onClick={add}>
           <Plus className="h-4 w-4" />
@@ -139,6 +143,14 @@ export default function VariantEditor({
                   }}
                   products={products}
                   loading={loading}
+                  excludeSlugs={[
+                    currentSlug || "",
+                    ...variants
+                      .map((other, otherIdx) =>
+                        otherIdx === idx ? "" : other.slug || "",
+                      )
+                      .filter(Boolean),
+                  ]}
                 />
               </div>
               <div className="min-w-[180px] flex-[1.5]">
@@ -180,11 +192,13 @@ function ProductSelect({
   onChange,
   products,
   loading,
+  excludeSlugs = [],
 }: {
   value: string;
   onChange: (slug: string, name?: string, image?: string) => void;
   products: ProductOption[];
   loading: boolean;
+  excludeSlugs?: string[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -205,24 +219,32 @@ function ProductSelect({
     };
   }, []);
 
+  const excluded = new Set(excludeSlugs.filter(Boolean));
   const selectedProduct = products.find((p) => p.slug === value);
+  const q = search.toLowerCase();
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.slug.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredProducts = products.filter((p) => {
+    if (p.slug !== value && excluded.has(p.slug)) return false;
+    return (
+      p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q)
+    );
+  });
+
+  const toggleOpen = () => {
+    setIsOpen((open) => !open);
+    setSearch("");
+  };
 
   return (
     <div ref={containerRef} className="relative w-full">
-      <button
-        type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          setSearch("");
-        }}
-        className="admin-input flex items-center justify-between gap-2 text-left cursor-pointer min-h-[42px]"
-      >
-        <div className="flex items-center gap-2 overflow-hidden">
+      <div className="admin-input flex items-center justify-between gap-2 min-h-[42px]">
+        <button
+          type="button"
+          onClick={toggleOpen}
+          className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-left cursor-pointer bg-transparent p-0 border-0"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+        >
           {selectedProduct ? (
             <>
               {selectedProduct.image ? (
@@ -244,24 +266,28 @@ function ProductSelect({
           ) : (
             <span className="text-sm text-[var(--admin-muted)]">Select product...</span>
           )}
-        </div>
+        </button>
         <div className="flex items-center gap-1 shrink-0">
           {value && (
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange("");
-              }}
+              onClick={() => onChange("")}
               className="p-0.5 hover:bg-[var(--admin-bg)] rounded text-[var(--admin-muted)] hover:text-[var(--admin-ink)]"
               title="Clear selection"
             >
               <X className="h-3 w-3" />
             </button>
           )}
-          <ChevronDown className="h-4 w-4 text-[var(--admin-muted)]" />
+          <button
+            type="button"
+            onClick={toggleOpen}
+            className="p-0.5 bg-transparent border-0 cursor-pointer text-[var(--admin-muted)]"
+            aria-label={isOpen ? "Close product list" : "Open product list"}
+          >
+            <ChevronDown className="h-4 w-4" />
+          </button>
         </div>
-      </button>
+      </div>
 
       {isOpen && (
         <div className="absolute left-0 right-0 z-50 mt-1 rounded-xl border border-[var(--admin-line)] bg-[var(--admin-surface)] p-2 shadow-lg max-h-80 overflow-hidden flex flex-col">

@@ -79,7 +79,9 @@ function normalizeInput(input: ProductInput): ProductInput {
     image: primary,
     images: images.length ? images : primary ? [primary] : [],
     sizes: (input.sizes || []).filter(Boolean),
-    variants: (input.variants || []).filter((v) => v.name || v.image),
+    variants: (input.variants || []).filter(
+      (v) => v.name || v.image || v.slug,
+    ),
     specifications: input.specifications || [],
   };
 }
@@ -188,6 +190,7 @@ export async function adminCreateProduct(
     const slugs = await existingSlugs();
     const base = data.slug?.trim() || data.name || data.title || "product";
     const slug = uniqueSlug(base, slugs);
+    data.variants = (data.variants || []).filter((v) => v.slug !== slug);
 
     const rows = await sql`
       INSERT INTO products (
@@ -225,13 +228,13 @@ export async function adminCreateProduct(
 
     const id = (rows[0] as { id: number }).id;
 
-    await syncBidirectionalVariants(
-      id,
-      slug,
-      data.title || data.name || "Product",
-      data.image || "",
-      data.variants || []
-    );
+    await syncBidirectionalVariants({
+      currentProductId: id,
+      currentProductSlug: slug,
+      currentProductTitle: data.title || data.name || "Product",
+      currentProductImage: data.image || "",
+      nextVariants: data.variants || [],
+    });
 
     try {
       await sql`
@@ -270,13 +273,22 @@ export async function adminUpdateProduct(
     ]);
     if (imageErr) return { ok: false, error: imageErr };
 
-    const existing = await sql`SELECT id FROM products WHERE id = ${id} LIMIT 1`;
+    const existing = await sql`
+      SELECT id, slug, variants FROM products WHERE id = ${id} LIMIT 1
+    `;
     if (existing.length === 0) return { ok: false, error: "Product not found." };
+    const previousSlug = String(
+      (existing[0] as { slug: string | null }).slug || "",
+    );
+    const previousVariants = parseVariants(
+      (existing[0] as { variants: unknown }).variants,
+    );
 
     const slugs = await existingSlugs(id);
     const base = data.slug?.trim() || data.name || data.title || `product-${id}`;
     let slug = slugify(base) || `product-${id}`;
     if (slugs.has(slug)) slug = uniqueSlug(base, slugs, id);
+    data.variants = (data.variants || []).filter((v) => v.slug !== slug);
 
     await sql`
       UPDATE products SET
@@ -306,13 +318,15 @@ export async function adminUpdateProduct(
       WHERE id = ${id}
     `;
 
-    await syncBidirectionalVariants(
-      id,
-      slug,
-      data.title || data.name || "Product",
-      data.image || "",
-      data.variants || []
-    );
+    await syncBidirectionalVariants({
+      currentProductId: id,
+      currentProductSlug: slug,
+      previousProductSlug: previousSlug,
+      currentProductTitle: data.title || data.name || "Product",
+      currentProductImage: data.image || "",
+      nextVariants: data.variants || [],
+      previousVariants,
+    });
 
     try {
       await sql`
@@ -356,7 +370,7 @@ export async function adminDeleteProduct(
       for (const row of affectedProducts) {
         const prodId = row.id as number;
         const prodSlug = row.slug as string;
-        const rVariants = (row.variants as Variant[]) || [];
+        const rVariants = parseVariants(row.variants);
         const updatedVariants = rVariants.filter((v) => v.slug !== slug);
         await sql`
           UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
@@ -586,89 +600,268 @@ export async function adminGetAllProductsQuick(): Promise<{ slug: string; name: 
   }
 }
 
-async function syncBidirectionalVariants(
-  currentProductId: number,
-  currentProductSlug: string,
-  currentProductTitle: string,
-  currentProductImage: string,
-  nextVariants: Variant[]
-) {
+function parseVariants(raw: unknown): Variant[] {
+  if (!raw) return [];
+  let value: unknown = raw;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(value)) return [];
+  return value.filter((v) => v && typeof v === "object") as Variant[];
+}
+
+function variantSlugs(variants: Variant[]): string[] {
+  return [
+    ...new Set(
+      variants
+        .map((v) => (v.slug || "").trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function hasVariantSlug(variants: Variant[], slug: string): boolean {
+  return Boolean(slug) && variants.some((v) => v.slug === slug);
+}
+
+function makeVariantId(): string {
+  return `v${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+type VariantMember = {
+  id: number;
+  slug: string;
+  name: string;
+  image: string;
+  variants: Variant[];
+};
+
+function rowToMember(row: Record<string, unknown>): VariantMember {
+  return {
+    id: row.id as number,
+    slug: String(row.slug || ""),
+    name: String(row.name || row.title || row.slug || ""),
+    image: String(row.image || ""),
+    variants: parseVariants(row.variants),
+  };
+}
+
+async function fetchProductsBySlugs(slugs: string[]): Promise<VariantMember[]> {
+  const unique = [...new Set(slugs.filter(Boolean))];
+  if (unique.length === 0) return [];
   try {
-    const nextSlugs = new Set(nextVariants.map((v) => v.slug).filter(Boolean) as string[]);
-
-    // Find all products in the database that currently contain this product slug in their variants field
-    const affectedProducts = await sql`
-      SELECT id, slug, variants FROM products 
-      WHERE variants::text LIKE ${'%' + currentProductSlug + '%'}
+    const rows = await sql`
+      SELECT id, slug, name, title, image, variants
+      FROM products
+      WHERE slug = ANY(${unique})
     `;
+    return rows.map((row) => rowToMember(row as Record<string, unknown>));
+  } catch (err) {
+    console.error("fetchProductsBySlugs ANY() failed, fetching one by one:", err);
+    const found: VariantMember[] = [];
+    for (const slug of unique) {
+      const rows = await sql`
+        SELECT id, slug, name, title, image, variants
+        FROM products
+        WHERE slug = ${slug}
+        LIMIT 1
+      `;
+      if (rows[0]) found.push(rowToMember(rows[0] as Record<string, unknown>));
+    }
+    return found;
+  }
+}
 
-    // 1. Process products that already reference currentProductSlug
-    for (const row of affectedProducts) {
-      const prodId = row.id as number;
-      const prodSlug = row.slug as string;
-      const rVariants = (row.variants as Variant[]) || [];
+async function fetchProductsLinkingTo(
+  slug: string,
+  excludeId: number,
+): Promise<VariantMember[]> {
+  if (!slug) return [];
+  try {
+    const rows = await sql`
+      SELECT id, slug, name, title, image, variants
+      FROM products
+      WHERE id <> ${excludeId}
+        AND EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(COALESCE(variants, '[]'::jsonb)) AS elem
+          WHERE elem->>'slug' = ${slug}
+        )
+    `;
+    return rows.map((row) => rowToMember(row as Record<string, unknown>));
+  } catch (err) {
+    console.error("fetchProductsLinkingTo jsonb failed, falling back:", err);
+    const rows = await sql`
+      SELECT id, slug, name, title, image, variants
+      FROM products
+      WHERE id <> ${excludeId}
+        AND variants::text LIKE ${"%" + slug + "%"}
+    `;
+    return rows
+      .map((row) => rowToMember(row as Record<string, unknown>))
+      .filter((p) => hasVariantSlug(p.variants, slug));
+  }
+}
 
-      if (nextSlugs.has(prodSlug)) {
-        // This product is still linked. Make sure currentProductSlug is in its variants.
-        const hasCurrent = rVariants.some((v) => v.slug === currentProductSlug);
-        if (!hasCurrent) {
-          const updatedVariants = [
-            ...rVariants,
-            {
-              id: `v${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-              name: currentProductTitle,
-              image: currentProductImage,
-              slug: currentProductSlug,
-            },
-          ];
-          await sql`
-            UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
-            WHERE id = ${prodId}
-          `;
-          revalidatePath(`/product/${prodSlug}`);
-        }
-      } else {
-        // This product is no longer linked in nextVariants. Remove currentProductSlug from its variants.
-        const updatedVariants = rVariants.filter((v) => v.slug !== currentProductSlug);
-        await sql`
-          UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
-          WHERE id = ${prodId}
-        `;
-        revalidatePath(`/product/${prodSlug}`);
+async function writeProductVariants(
+  product: { id: number; slug: string },
+  variants: Variant[],
+) {
+  await sql`
+    UPDATE products SET variants = ${JSON.stringify(variants)}
+    WHERE id = ${product.id}
+  `;
+  revalidatePath(`/product/${product.slug}`);
+  revalidatePath(`/admin/products/${product.id}/edit`);
+}
+
+async function syncBidirectionalVariants({
+  currentProductId,
+  currentProductSlug,
+  previousProductSlug,
+  currentProductTitle,
+  currentProductImage,
+  nextVariants,
+  previousVariants = [],
+}: {
+  currentProductId: number;
+  currentProductSlug: string;
+  previousProductSlug?: string;
+  currentProductTitle: string;
+  currentProductImage: string;
+  nextVariants: Variant[];
+  previousVariants?: Variant[];
+}) {
+  try {
+    if (!currentProductSlug) return;
+
+    const slugChanged = Boolean(
+      previousProductSlug && previousProductSlug !== currentProductSlug,
+    );
+    const nextLinked = new Set(
+      variantSlugs(nextVariants).filter((s) => s !== currentProductSlug),
+    );
+    const prevLinked = new Set(
+      variantSlugs(previousVariants).filter(
+        (s) => s !== currentProductSlug && s !== previousProductSlug,
+      ),
+    );
+
+    const [resolvedProducts, referencingCurrent, referencingPrevious] =
+      await Promise.all([
+        fetchProductsBySlugs([...nextLinked, ...prevLinked]),
+        fetchProductsLinkingTo(currentProductSlug, currentProductId),
+        slugChanged
+          ? fetchProductsLinkingTo(previousProductSlug!, currentProductId)
+          : Promise.resolve([] as VariantMember[]),
+      ]);
+
+    const byId = new Map<number, VariantMember>();
+    for (const product of [
+      ...resolvedProducts,
+      ...referencingCurrent,
+      ...referencingPrevious,
+    ]) {
+      byId.set(product.id, product);
+    }
+
+    const family = new Map<
+      string,
+      { slug: string; name: string; image: string }
+    >();
+    family.set(currentProductSlug, {
+      slug: currentProductSlug,
+      name: currentProductTitle,
+      image: currentProductImage,
+    });
+    for (const product of resolvedProducts) {
+      if (nextLinked.has(product.slug)) {
+        family.set(product.slug, {
+          slug: product.slug,
+          name: product.name,
+          image: product.image,
+        });
       }
     }
 
-    // 2. Process products in nextSlugs that do not already reference currentProductSlug (new links)
-    const affectedSlugs = new Set(affectedProducts.map((p) => p.slug as string));
-    for (const slugQ of nextSlugs) {
-      if (!affectedSlugs.has(slugQ)) {
-        // Fetch the product to see if it exists
-        const rows = await sql`
-          SELECT id, variants FROM products 
-          WHERE slug = ${slugQ} 
-          LIMIT 1
-        `;
-        if (rows.length > 0) {
-          const prodId = rows[0].id as number;
-          const qVariants = (rows[0].variants as Variant[]) || [];
-          const hasCurrent = qVariants.some((v) => v.slug === currentProductSlug);
-          if (!hasCurrent) {
-            const updatedVariants = [
-              ...qVariants,
-              {
-                id: `v${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-                name: currentProductTitle,
-                image: currentProductImage,
-                slug: currentProductSlug,
-              },
-            ];
-            await sql`
-              UPDATE products SET variants = ${JSON.stringify(updatedVariants)}
-              WHERE id = ${prodId}
-            `;
-            revalidatePath(`/product/${slugQ}`);
-          }
+    const familySlugs = new Set(family.keys());
+    const unlinkedSlugs = new Set<string>();
+    for (const slug of prevLinked) {
+      if (!familySlugs.has(slug)) unlinkedSlugs.add(slug);
+    }
+
+    const unlinkedIds = new Set<number>();
+    for (const product of byId.values()) {
+      if (product.id === currentProductId) continue;
+      if (familySlugs.has(product.slug)) continue;
+      const listedBefore = prevLinked.has(product.slug);
+      const referencesCurrent = hasVariantSlug(
+        product.variants,
+        currentProductSlug,
+      );
+      const referencesPrevious =
+        slugChanged && hasVariantSlug(product.variants, previousProductSlug!);
+      if (listedBefore || referencesCurrent || referencesPrevious) {
+        unlinkedIds.add(product.id);
+        if (product.slug) unlinkedSlugs.add(product.slug);
+      }
+    }
+
+    for (const product of byId.values()) {
+      if (product.id === currentProductId) continue;
+      if (!familySlugs.has(product.slug)) continue;
+
+      let variants = product.variants.map((variant) => {
+        if (
+          variant.slug === currentProductSlug ||
+          (slugChanged && variant.slug === previousProductSlug)
+        ) {
+          return {
+            ...variant,
+            slug: currentProductSlug,
+            name: variant.name || currentProductTitle,
+            image: variant.image || currentProductImage,
+          };
         }
+        return variant;
+      });
+
+      variants = variants.filter(
+        (variant) => !variant.slug || !unlinkedSlugs.has(variant.slug),
+      );
+
+      for (const [otherSlug, other] of family) {
+        if (otherSlug === product.slug) continue;
+        if (hasVariantSlug(variants, otherSlug)) continue;
+        variants.push({
+          id: makeVariantId(),
+          name: other.name,
+          image: other.image,
+          slug: otherSlug,
+        });
+      }
+
+      if (JSON.stringify(variants) !== JSON.stringify(product.variants)) {
+        await writeProductVariants(product, variants);
+      }
+    }
+
+    for (const id of unlinkedIds) {
+      const product = byId.get(id);
+      if (!product) continue;
+      const variants = product.variants.filter((variant) => {
+        if (!variant.slug) return true;
+        if (variant.slug === currentProductSlug) return false;
+        if (slugChanged && variant.slug === previousProductSlug) return false;
+        if (familySlugs.has(variant.slug)) return false;
+        return true;
+      });
+      if (JSON.stringify(variants) !== JSON.stringify(product.variants)) {
+        await writeProductVariants(product, variants);
       }
     }
   } catch (error) {
