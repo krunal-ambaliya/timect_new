@@ -147,6 +147,12 @@ export default function ProductTable({
     });
   };
 
+  const selectedProducts = products.filter((p) => selected.has(p.id));
+  const hasSelected = selectedProducts.length > 0;
+  const allNew = hasSelected && selectedProducts.every((p) => p.isNewArrival);
+  const allRec = hasSelected && selectedProducts.every((p) => p.isRecommended);
+  const allRel = hasSelected && selectedProducts.every((p) => p.isRelated);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -217,25 +223,25 @@ export default function ProductTable({
             type="button"
             className="admin-btn admin-btn-secondary text-xs"
             disabled={pending}
-            onClick={() => runBulkFlag({ isNewArrival: true })}
+            onClick={() => runBulkFlag({ isNewArrival: !allNew })}
           >
-            Mark new
+            {allNew ? "Unmark new" : "Mark new"}
           </button>
           <button
             type="button"
             className="admin-btn admin-btn-secondary text-xs"
             disabled={pending}
-            onClick={() => runBulkFlag({ isRecommended: true })}
+            onClick={() => runBulkFlag({ isRecommended: !allRec })}
           >
-            Mark recommended
+            {allRec ? "Unmark recommended" : "Mark recommended"}
           </button>
           <button
             type="button"
             className="admin-btn admin-btn-secondary text-xs"
             disabled={pending}
-            onClick={() => runBulkFlag({ isRelated: true })}
+            onClick={() => runBulkFlag({ isRelated: !allRel })}
           >
-            Mark related
+            {allRel ? "Unmark related" : "Mark related"}
           </button>
           <button
             type="button"
