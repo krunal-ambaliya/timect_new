@@ -160,7 +160,7 @@ export default function CorporateGiftingExperience({ products }: Props) {
 
           <FloatingGiftField
             products={giftProducts}
-            baseDuration={42}
+            baseDuration={130}
             className="cg-field-main"
             onProductSelect={handleProductSelect}
             paused={overlayOpen}
