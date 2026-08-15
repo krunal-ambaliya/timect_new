@@ -126,7 +126,9 @@ export default function Home() {
       gsap.set(heroBtn, { autoAlpha: 1, y: 0 });
       gsap.set(heroImg, { scale: 1, opacity: 1 });
       gsap.set(".heroDot", { autoAlpha: 1, x: 0 });
-      gsap.set(".prod-item", { opacity: 1, y: 0 });
+      if (document.querySelectorAll(".prod-item").length > 0) {
+        gsap.set(".prod-item", { opacity: 1, y: 0 });
+      }
       gsap.set(".cat-tile", {
         clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
       });
@@ -246,20 +248,24 @@ export default function Home() {
       });
 
       // Product Carousel Reveal
-      const productCards = document.querySelectorAll(".group.cursor-pointer");
+      const productCards = document.querySelectorAll(
+        ".group.cursor-pointer, .group\\/card.cursor-pointer"
+      );
       productCards.forEach((card) => card.classList.add("prod-item"));
 
-      ScrollTrigger.batch(".prod-item", {
-        onEnter: (batch) =>
-          gsap.to(batch, {
-            opacity: 1,
-            y: 0,
-            stagger: 0.1,
-            duration: 0.8,
-            ease: "power3.out",
-          }),
-        start: "top 85%",
-      });
+      if (productCards.length > 0) {
+        ScrollTrigger.batch(".prod-item", {
+          onEnter: (batch) =>
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              stagger: 0.1,
+              duration: 0.8,
+              ease: "power3.out",
+            }),
+          start: "top 85%",
+        });
+      }
 
       // Category Grid Reveal
       ScrollTrigger.batch(".cat-tile", {
@@ -330,7 +336,9 @@ export default function Home() {
       gsap.set(heroImg, { scale: 1.08, opacity: 0 });
       gsap.set(".heroDot", { autoAlpha: 0, x: -20 });
 
-      gsap.set(".prod-item", { opacity: 0, y: 40 });
+      if (document.querySelectorAll(".prod-item").length > 0) {
+        gsap.set(".prod-item", { opacity: 0, y: 40 });
+      }
       gsap.set(".cat-tile", { clipPath: "polygon(0 0, 100% 0, 100% 0, 0 0)" });
       gsap.set("footer .footer-col", { opacity: 0, y: 20 });
       document.querySelectorAll(".bg-\\[\\#f4f4f2\\] *").forEach((el) => {
@@ -388,7 +396,7 @@ export default function Home() {
       lenis.destroy();
       lenisRef.current = null;
     };
-  }, { scope: containerRef, dependencies: [skipIntro] });
+  }, { scope: containerRef, dependencies: [skipIntro, productsLoaded] });
 
   return (
     <div ref={containerRef}>
